@@ -39,12 +39,12 @@ public class SecurityConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/register", "/login", "/showlogin", "/showregister", "api/auth/verify").permitAll()
+                        .requestMatchers("/register", "/login", "/showlogin", "/showregister", "api/auth/verify", "/create")
+                        .permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/ventas/**").hasAnyRole("vendedor", "ADMIN")
-                        .requestMatchers("//**").hasAnyRole("USER", "ADMIN")
-                        .anyRequest().authenticated()
-                )
+                        .requestMatchers("/inventario").hasAnyRole("inventario", "ADMIN")
+                        .anyRequest().authenticated())
 
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

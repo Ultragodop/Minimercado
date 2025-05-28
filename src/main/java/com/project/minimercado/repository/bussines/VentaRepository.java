@@ -1,7 +1,8 @@
 package com.project.minimercado.repository.bussines;
 
+import com.project.minimercado.model.bussines.Venta;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface VentaRepository extends JpaRepository<VentaRepository, Integer> {
+public interface VentaRepository extends JpaRepository<Venta, Integer> {
 
 }

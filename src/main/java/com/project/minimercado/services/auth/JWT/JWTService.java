@@ -1,4 +1,4 @@
-package com.project.minimercado.repository.login.JWT;
+package com.project.minimercado.services.auth.JWT;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

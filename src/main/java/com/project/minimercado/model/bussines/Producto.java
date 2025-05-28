@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 
+import java.math.BigDecimal;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -29,10 +30,10 @@ public class Producto {
     @Column(name = "descripcion")
     private String descripcion;
 
-    @Column(name = "precio_compra", nullable = false, precision = 10, scale = 2)
+    @Column(name = "precio_compra", nullable = false )
     private Double precioCompra;
 
-    @Column(name = "precio_venta", nullable = false, precision = 10, scale = 2)
+    @Column(name = "precio_venta", nullable = false)
     private Double precioVenta;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

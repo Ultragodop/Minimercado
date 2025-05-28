@@ -31,9 +31,6 @@ public class Usuario {
     @Column(name = "rol", nullable = false)
     private String rol;
 
-    @Column(name = "usuario", nullable = false, length = 100)
-    private String usuario;
-
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
