@@ -2,7 +2,7 @@ package com.project.minimercado.services.bussines;
 
 import com.project.minimercado.model.bussines.Gasto;
 import com.project.minimercado.model.bussines.MovimientosContable;
-import com.project.minimercado.repository.bussines.GastosRepository;
+import com.project.minimercado.repository.bussines.GastoRepository;
 import com.project.minimercado.repository.bussines.TransaccionesRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,10 +15,10 @@ import java.util.Optional;
 
 @Service
 public class GastosService {
-    private final GastosRepository gastosRepository;
+    private final GastoRepository gastosRepository;
     private final TransaccionesRepository transaccionesRepository;
 
-    public GastosService(GastosRepository gastosRepository, 
+    public GastosService(GastoRepository gastosRepository, 
                         TransaccionesRepository transaccionesRepository) {
         this.gastosRepository = gastosRepository;
         this.transaccionesRepository = transaccionesRepository;

@@ -2,7 +2,7 @@ package com.project.minimercado.services.auth;
 import com.project.minimercado.model.bussines.Usuario;
 import com.project.minimercado.model.login.UserPrincipal;
 import com.project.minimercado.repository.bussines.UsuarioRepository;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -11,11 +11,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class MyUsrDtlsService implements UserDetailsService {
+    @Autowired
+    private UsuarioRepository usuariorepository;
 
-    private final  UsuarioRepository usuariorepository;
-    public MyUsrDtlsService(UsuarioRepository usuariorepository) {
-        this.usuariorepository = usuariorepository;
-    }
     /*
      * Este metodo es el que se encarga de cargar el usuario desde la base de datos
      * y devolverlo a Spring Security

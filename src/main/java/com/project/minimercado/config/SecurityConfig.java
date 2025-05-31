@@ -1,76 +1,89 @@
 package com.project.minimercado.config;
 
-
 import com.project.minimercado.services.auth.MyUsrDtlsService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-//Problema que tenia con authenticationmanager era que habia una ciclo de dependencias,
-// a que me refiero con esto, authservice dependia de authmanager y authmanager dependia de authservice,
-// porque no sabia que se necesitaba crear una clase aparte para authenticationprovider,
-// como authenticationprovider depende de authenticationmanager, se crea un ciclo de dependencias,
-// por lo que se crea una clase aparte para authenticationprovider, y se inyecta en la clase securityconfig,
-// y en la clase authservice se inyecta el authenticationprovider fua que capo que soy
+import java.util.Arrays;
+
 @Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
     private final JWTAuthFilter jwtAuthFilter;
-    private final MyUsrDtlsService myUsrDtlsService;
-
-
-    public SecurityConfig(JWTAuthFilter jwtAuthFilter, MyUsrDtlsService myUsrDtlsService) {
-        this.jwtAuthFilter = jwtAuthFilter;
-        this.myUsrDtlsService = myUsrDtlsService;
-    }
-
+    private final MyUsrDtlsService userDetailsService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf
+                    .ignoringRequestMatchers("/api/auth/**")
+                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                )
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/register", "/login", "/showlogin", "/showregister", "api/auth/verify", "/create")
-                        .permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/ventas/**").hasAnyRole("vendedor", "ADMIN")
-                        .requestMatchers("/inventario").hasAnyRole("inventario", "ADMIN")
-                        .anyRequest().authenticated())
-
-                .httpBasic(Customizer.withDefaults())
-                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .requestMatchers("/api/auth/**", "/login", "/register").permitAll()
+                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/api/user/**").hasRole("USER")
+                    .anyRequest().authenticated()
+                )
+                .sessionManagement(session -> session
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .headers(headers -> headers
+                    .frameOptions(frame -> frame.deny())
+                    .xssProtection(xss -> xss.disable())
+                    .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'"))
+                )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-
-
                 .build();
+    }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3050")); // Ajusta según tu frontend
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-CSRF-TOKEN"));
+        configuration.setAllowCredentials(true);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setPasswordEncoder(new BCryptPasswordEncoder(5));
-
-        authProvider.setUserDetailsService(myUsrDtlsService);
-        System.out.println("myUsrDtlsService: " + myUsrDtlsService);
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
-
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
-
     }
 
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(12); // Aumentado a 12 para mayor seguridad
+    }
 }

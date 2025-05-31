@@ -1,24 +1,161 @@
 package com.project.minimercado.controllers.bussines;
 
-
 import com.project.minimercado.model.bussines.Producto;
 import com.project.minimercado.services.bussines.Inventario.InventarioService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
+@RequestMapping("/api/inventario")
+@Slf4j
 public class InventarioController {
     private final InventarioService inventarioService;
+
     public InventarioController(InventarioService inventarioService) {
         this.inventarioService = inventarioService;
     }
-    @PostMapping("/create")
-    public ResponseEntity agregarProducto(@RequestBody Producto producto) {
 
-        inventarioService.create(producto);
-        return ResponseEntity.ok(producto);
+    @GetMapping("/estado")
+    public ResponseEntity<Map<String, Object>> obtenerEstadoInventario() {
+        try {
+            return ResponseEntity.ok(inventarioService.obtenerEstadoInventario());
+        } catch (Exception e) {
+            log.error("Error al obtener estado del inventario", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 
+    @GetMapping("/resumen/categoria")
+    public ResponseEntity<Map<String, Object>> obtenerResumenPorCategoria() {
+        try {
+            return ResponseEntity.ok(inventarioService.obtenerResumenPorCategoria());
+        } catch (Exception e) {
+            log.error("Error al obtener resumen por categoría", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/resumen/proveedor")
+    public ResponseEntity<Map<String, Object>> obtenerResumenPorProveedor() {
+        try {
+            return ResponseEntity.ok(inventarioService.obtenerResumenPorProveedor());
+        } catch (Exception e) {
+            log.error("Error al obtener resumen por proveedor", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/alertas")
+    public ResponseEntity<List<Map<String, Object>>> obtenerAlertasInventario() {
+        try {
+            return ResponseEntity.ok(inventarioService.obtenerAlertasInventario());
+        } catch (Exception e) {
+            log.error("Error al obtener alertas de inventario", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/estadisticas")
+    public ResponseEntity<Map<String, Object>> obtenerEstadisticasInventario() {
+        try {
+            return ResponseEntity.ok(inventarioService.obtenerEstadisticasInventario());
+        } catch (Exception e) {
+            log.error("Error al obtener estadísticas de inventario", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PostMapping("/producto")
+    public ResponseEntity<Producto> agregarProducto(@RequestBody Producto producto) {
+        try {
+            return ResponseEntity.ok(inventarioService.crearProducto(producto));
+        } catch (IllegalArgumentException e) {
+            log.warn("Error al agregar producto: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Error al agregar producto", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PutMapping("/producto/{id}")
+    public ResponseEntity<Producto> actualizarProducto(
+            @PathVariable Integer id,
+            @RequestBody Producto producto) {
+        try {
+            return ResponseEntity.ok(inventarioService.actualizarProducto(id, producto));
+        } catch (IllegalArgumentException e) {
+            log.warn("Error al actualizar producto: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Error al actualizar producto", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @DeleteMapping("/producto/{id}")
+    public ResponseEntity<Void> eliminarProducto(@PathVariable Integer id) {
+        try {
+            inventarioService.eliminarProducto(id);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            log.warn("Error al eliminar producto: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Error al eliminar producto", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/producto/{id}")
+    public ResponseEntity<Producto> obtenerProducto(@PathVariable Integer id) {
+        try {
+            return ResponseEntity.ok(inventarioService.obtenerProductoPorId(id));
+        } catch (IllegalArgumentException e) {
+            log.warn("Error al obtener producto: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Error al obtener producto", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/productos/activos")
+    public ResponseEntity<List<Producto>> listarProductosActivos() {
+        try {
+            return ResponseEntity.ok(inventarioService.listarProductosActivos());
+        } catch (Exception e) {
+            log.error("Error al listar productos activos", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/productos/bajo-stock")
+    public ResponseEntity<List<Producto>> obtenerProductosBajoStock() {
+        try {
+            return ResponseEntity.ok(inventarioService.obtenerProductosBajoStock());
+        } catch (Exception e) {
+            log.error("Error al obtener productos bajo stock", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PutMapping("/producto/{id}/stock")
+    public ResponseEntity<Producto> actualizarStock(
+            @PathVariable Integer id,
+            @RequestParam Integer cantidad) {
+        try {
+            return ResponseEntity.ok(inventarioService.actualizarStock(id, cantidad));
+        } catch (IllegalArgumentException e) {
+            log.warn("Error al actualizar stock: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Error al actualizar stock", e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }
