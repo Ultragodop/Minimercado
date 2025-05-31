@@ -31,29 +31,30 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .csrf(csrf -> csrf
-                    .ignoringRequestMatchers("/api/auth/**")
-                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                )
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/auth/**", "/login", "/register").permitAll()
-                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                    .requestMatchers("/api/user/**").hasRole("USER")
-                    .anyRequest().authenticated()
-                )
-                .sessionManagement(session -> session
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .headers(headers -> headers
-                    .frameOptions(frame -> frame.deny())
-                    .xssProtection(xss -> xss.disable())
-                    .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'"))
-                )
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+        http
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/devoluciones/**").hasAnyRole("ADMIN", "GERENTE")
+                .requestMatchers("/api/ventas/**").hasAnyRole("ADMIN", "GERENTE", "VENDEDOR")
+                .requestMatchers("/api/productos/**").hasAnyRole("ADMIN", "GERENTE", "VENDEDOR")
+                .requestMatchers("/api/inventario/**").hasAnyRole("ADMIN", "GERENTE")
+                .requestMatchers("/api/reportes/**").hasAnyRole("ADMIN", "GERENTE")
+                .anyRequest().authenticated()
+            )
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.deny())
+                .xssProtection(xss -> xss.disable())
+                .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'"))
+            )
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 
     @Bean

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/inventario")
@@ -155,6 +156,33 @@ public class InventarioController {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             log.error("Error al actualizar stock", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/producto/scan/{id}")
+    public ResponseEntity<Map<String, Object>> obtenerProductoPorId(
+            @PathVariable Integer id) {
+        try {
+            Producto producto = inventarioService.obtenerProductoPorId(id);
+            if (producto == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", producto.getId());
+            response.put("nombre", producto.getNombre());
+            response.put("descripcion", producto.getDescripcion());
+            response.put("precioVenta", producto.getPrecioVenta());
+            response.put("stockActual", producto.getStockActual());
+            response.put("stockMinimo", producto.getStockMinimo());
+            response.put("categoria", producto.getIdCategoria().getNombre());
+            response.put("proveedor", producto.getIdProveedor().getNombre());
+            response.put("activo", producto.getActivo());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error al buscar producto por ID: {}", e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
