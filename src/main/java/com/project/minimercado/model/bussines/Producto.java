@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
-
 import java.math.BigDecimal;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -30,14 +29,14 @@ public class Producto {
     @Column(name = "descripcion")
     private String descripcion;
 
-    @Column(name = "precio_compra", nullable = false )
+    @Column(name = "precio_compra", nullable = false)
     private Double precioCompra;
 
     @Column(name = "precio_venta", nullable = false)
     private Double precioVenta;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_categoria", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_categoria", nullable = false, foreignKey = @ForeignKey(name = "fk_producto_categoria"))
     private Categoria idCategoria;
 
     @ColumnDefault("0")
@@ -48,18 +47,17 @@ public class Producto {
     @Column(name = "stock_minimo", nullable = false)
     private Integer stockMinimo;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_proveedor", nullable = false)
-    private com.project.minimercado.model.bussines.Proveedores idProveedor;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_proveedor", nullable = false, foreignKey = @ForeignKey(name = "fk_producto_proveedor"))
+    private Proveedores idProveedor;
 
     @ColumnDefault("1")
     @Column(name = "activo", nullable = false)
-    private Boolean activo = false;
+    private Boolean activo = true;
 
     @OneToMany(mappedBy = "idProducto")
     private Set<DetallePedidoProveedor> detallePedidoProveedors = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "idProducto")
     private Set<DetalleVenta> detalleVentas = new LinkedHashSet<>();
-
 }

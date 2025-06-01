@@ -27,15 +27,21 @@ public class Venta {
     @Column(name = "total", nullable = false, precision = 12, scale = 2)
     private BigDecimal total;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_usuario", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_usuario", nullable = false, foreignKey = @ForeignKey(name = "fk_venta_usuario"))
     private Usuario idUsuario;
 
     @Lob
     @Column(name = "tipo_pago", nullable = false)
     private String tipoPago;
 
-    @OneToMany(mappedBy = "idVenta")
+    @Column(name = "estado", nullable = false)
+    private String estado;
+
+    @Column(name = "transaction_external_id")
+    private String transactionExternalId;
+
+    @OneToMany(mappedBy = "idVenta", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<DetalleVenta> detalleVentas = new LinkedHashSet<>();
 
 }

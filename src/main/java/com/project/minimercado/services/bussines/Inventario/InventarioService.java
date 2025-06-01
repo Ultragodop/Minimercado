@@ -12,11 +12,11 @@ import java.util.Map;
 
 @Service
 public class InventarioService {
-    private final ProductoService productoService;
+    private final ProductosService productoService;
     private final CategoriaService categoriaService;
     private final ProveedorService proveedorService;
 
-    public InventarioService(ProductoService productoService,
+    public InventarioService(ProductosService productoService,
                            CategoriaService categoriaService,
                            ProveedorService proveedorService) {
         this.productoService = productoService;
@@ -161,5 +161,41 @@ public class InventarioService {
         estadisticas.put("totalProveedores", totalProveedores);
         
         return estadisticas;
+    }
+
+    // Métodos delegados a ProductosService
+    @Transactional
+    public Producto crearProducto(Producto producto) {
+        return productoService.crearProducto(producto);
+    }
+
+    @Transactional
+    public Producto actualizarProducto(Integer id, Producto producto) {
+        return productoService.actualizarProducto(id, producto);
+    }
+
+    @Transactional
+    public void eliminarProducto(Integer id) {
+        productoService.eliminarProducto(id);
+    }
+
+    @Transactional(readOnly = true)
+    public Producto obtenerProductoPorId(Integer id) {
+        return productoService.obtenerProductoPorId(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Producto> listarProductosActivos() {
+        return productoService.listarProductosActivos();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Producto> obtenerProductosBajoStock() {
+        return productoService.obtenerProductosBajoStock();
+    }
+
+    @Transactional
+    public Producto actualizarStock(Integer id, Integer cantidad) {
+        return productoService.actualizarStock(id, cantidad);
     }
 } 

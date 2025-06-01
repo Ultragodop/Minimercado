@@ -1,114 +1,113 @@
 package com.project.minimercado.services.auth;
 
-
 import com.project.minimercado.model.bussines.Usuario;
 import com.project.minimercado.model.login.LoginRequest;
 import com.project.minimercado.model.login.LoginResponse;
-
-
 import com.project.minimercado.model.register.RegisterRequest;
 import com.project.minimercado.model.register.RegisterResponse;
 import com.project.minimercado.repository.bussines.UsuarioRepository;
-
 import com.project.minimercado.services.auth.JWT.JWTService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 public class AuthService {
-    private final BCryptPasswordEncoder encryptor = new BCryptPasswordEncoder(5);
-    /*
-     * Inyeccion de dependencias resumido con autowired
-     * */
+    private final BCryptPasswordEncoder encryptor = new BCryptPasswordEncoder(12);
+    private static final int MIN_PASSWORD_LENGTH = 8;
+    private static final String USERNAME_PATTERN = "^[a-zA-Z0-9_]{3,20}$";
 
-    JWTService jwtService;
+    @Autowired
+    private JWTService jwtService;
 
-    AuthenticationManager authManager;
+    @Autowired
+    private AuthenticationManager authManager;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
-     UsuarioRepository userRepository;
-
-    public AuthService( JWTService jwtService,
-                       AuthenticationManager authManager,
-                        UsuarioRepository userRepository) {
-        this.jwtService = jwtService;
-        this.authManager = authManager;
-        this.userRepository = userRepository;
-    }
+    @Transactional
     public LoginResponse login(LoginRequest loginRequest) {
-        System.out.println("Intentando iniciar sesion: {}" + loginRequest.getUsername());
-
-        if (loginRequest.getUsername() == null || loginRequest.getPassword() == null) {
-            return new LoginResponse("error", "Parametros invalidos");
-        }
-
-        Usuario user = userRepository.findByNombre(loginRequest.getUsername());
-
-        if (user != null) {
-
-            if (encryptor.matches(loginRequest.getPassword(), user.getPasswordHash())) {
-
-                return new LoginResponse("success", "Login exitoso");
-            } else {
-
-                return new LoginResponse("error", "Contraseña incorrecta");
+        try {
+            if (!isValidLoginRequest(loginRequest)) {
+                return new LoginResponse("error", "Parámetros inválidos");
             }
+
+            Usuario usuario = usuarioRepository.findByNombre(loginRequest.getUsername());
+            if (usuario == null) {
+                return new LoginResponse("error", "Usuario no encontrado");
+            }
+
+            Authentication authentication = authManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                    loginRequest.getUsername(),
+                    loginRequest.getPassword()
+                )
+            );
+
+            if (authentication.isAuthenticated()) {
+                UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+                String role = userDetails.getAuthorities().stream()
+                        .findFirst()
+                        .map(GrantedAuthority::getAuthority)
+                        .orElse("ROLE_USER");
+
+                String token = jwtService.generateToken(loginRequest.getUsername(), role);
+                return new LoginResponse("success", token);
+            }
+
+            return new LoginResponse("error", "Autenticación fallida");
+        } catch (BadCredentialsException e) {
+            return new LoginResponse("error", "Credenciales inválidas");
+        } catch (Exception e) {
+            return new LoginResponse("error", "Error en el servidor: " + e.getMessage());
         }
-
-
-        return new LoginResponse("error", "UsuarioRepository no encontrado");
     }
 
+    @Transactional
     public RegisterResponse register(RegisterRequest registerRequest) {
-        System.out.println("Attempting registration for user: {}" + registerRequest.getUsername());
-
-        if (registerRequest.getUsername() == null || registerRequest.getPassword() == null || registerRequest.getRol() == null) {
-            return new RegisterResponse("error", "Invalid request parameters");
-        }
-
-        Usuario existingUser = userRepository.findByNombre(registerRequest.getUsername());
-        if (existingUser != null) {
-            System.out.println("Username already exists: {}" + registerRequest.getUsername());
-            return new RegisterResponse("error", "El usuario ya existe");
-        }
-
         try {
-            Usuario newUser = new Usuario();
-            newUser.setNombre(registerRequest.getUsername());
-            newUser.setRol(registerRequest.getRol());
-            newUser.setPasswordHash(encryptor.encode(registerRequest.getPassword()));
-            userRepository.save(newUser);
+            if (!isValidRegisterRequest(registerRequest)) {
+                return new RegisterResponse("error", "Parámetros inválidos");
+            }
+
+            Usuario existingUsuario = usuarioRepository.findByNombre(registerRequest.getUsername());
+            if (existingUsuario != null) {
+                return new RegisterResponse("error", "El usuario ya existe");
+            }
+
+            Usuario newUsuario = new Usuario();
+            newUsuario.setNombre(registerRequest.getUsername());
+            newUsuario.setPasswordHash(encryptor.encode(registerRequest.getPassword()));
+            newUsuario.setRol(registerRequest.getRol() != null ? registerRequest.getRol() : "USER");
+            
+            usuarioRepository.save(newUsuario);
             return new RegisterResponse("success", "Registro exitoso");
         } catch (Exception e) {
-            System.out.println("Error registering user: {}" + registerRequest.getUsername() + e);
-            return new RegisterResponse("error", "Error registering user: " + e.getMessage());
+            return new RegisterResponse("error", "Error en el registro: " + e.getMessage());
         }
     }
 
+    private boolean isValidLoginRequest(LoginRequest request) {
+        return request != null &&
+               StringUtils.hasText(request.getUsername()) &&
+               StringUtils.hasText(request.getPassword()) &&
+               request.getPassword().length() >= MIN_PASSWORD_LENGTH;
+    }
 
-    public String verify(Usuario usuario) {
-        Authentication authentication =
-                authManager.authenticate(new UsernamePasswordAuthenticationToken(usuario.getNombre(), usuario.getPasswordHash()));
-        if (authentication.isAuthenticated()) {
-            System.out.println("Parte de la autenticacion con exito: " + authentication.isAuthenticated());
-
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            System.out.println(userDetails.getUsername() + "Parte de la autenticacion con exito: " + userDetails.isAccountNonExpired());
-            String role = userDetails.getAuthorities().stream()
-                    .findFirst()
-                    .map(GrantedAuthority::getAuthority)
-                    .orElse("inventario");
-            System.out.println("Usuario autenticado: " + usuario.getNombre() + " con rol: " + role);
-            return jwtService.generateToken(usuario.getNombre(), role);
-        }
-            System.out.println("Usuario no autenticado");
-        return "error";
-
-
+    private boolean isValidRegisterRequest(RegisterRequest request) {
+        return request != null &&
+               StringUtils.hasText(request.getUsername()) &&
+               request.getUsername().matches(USERNAME_PATTERN) &&
+               StringUtils.hasText(request.getPassword()) &&
+               request.getPassword().length() >= MIN_PASSWORD_LENGTH;
     }
 }

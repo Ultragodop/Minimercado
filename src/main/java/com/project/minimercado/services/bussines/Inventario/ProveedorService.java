@@ -6,11 +6,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Service
 public class ProveedorService {
     private final ProveedoresRepository proveedoresRepository;
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^[+]?[(]?[0-9]{3}[)]?[-\\s.]?[0-9]{3}[-\\s.]?[0-9]{4,6}$");
 
     public ProveedorService(ProveedoresRepository proveedoresRepository) {
         this.proveedoresRepository = proveedoresRepository;
@@ -23,17 +25,40 @@ public class ProveedorService {
     }
 
     @Transactional
-    public void actualizarProveedor(Proveedores proveedor) {
-        if (proveedor.getId() == null) {
-            throw new RuntimeException("El ID del proveedor es requerido para actualizar");
-        }
+    public Proveedores actualizarProveedor(Integer id, Proveedores proveedorActualizado) {
+        Proveedores proveedorExistente = obtenerProveedorPorId(id);
+        
+        // Actualizar campos
+        proveedorExistente.setNombre(proveedorActualizado.getNombre());
+        proveedorExistente.setTelefono(proveedorActualizado.getTelefono());
+        proveedorExistente.setEmail(proveedorActualizado.getEmail());
+        proveedorExistente.setDireccion(proveedorActualizado.getDireccion());
+        
+        validarProveedor(proveedorExistente);
+        return proveedoresRepository.save(proveedorExistente);
+    }
 
-        if (!proveedoresRepository.existsById(proveedor.getId())) {
-            throw new RuntimeException("Proveedor no encontrado");
+    @Transactional
+    public void eliminarProveedor(Integer id) {
+        Proveedores proveedor = obtenerProveedorPorId(id);
+        
+        // Verificar si hay productos asociados
+        if (!proveedor.getProductos().isEmpty()) {
+            throw new RuntimeException("No se puede eliminar el proveedor porque tiene productos asociados");
         }
+        
+        // Verificar si hay pedidos asociados
+        if (!proveedor.getPedidosProveedors().isEmpty()) {
+            throw new RuntimeException("No se puede eliminar el proveedor porque tiene pedidos asociados");
+        }
+        
+        proveedoresRepository.delete(proveedor);
+    }
 
-        validarProveedor(proveedor);
-        proveedoresRepository.save(proveedor);
+    @Transactional(readOnly = true)
+    public Proveedores obtenerProveedorPorId(Integer id) {
+        return proveedoresRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con ID: " + id));
     }
 
     @Transactional(readOnly = true)
@@ -42,41 +67,59 @@ public class ProveedorService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<Proveedores> buscarProveedorPorId(Integer id) {
-        return proveedoresRepository.findById(id);
+    public Proveedores buscarProveedorPorNombre(String nombre) {
+        return proveedoresRepository.findAll().stream()
+                .filter(p -> p.getNombre().equalsIgnoreCase(nombre))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con nombre: " + nombre));
     }
 
-    @Transactional
-    public void eliminarProveedor(Integer id) {
-        Proveedores proveedor = proveedoresRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
+    @Transactional(readOnly = true)
+    public boolean existeProveedor(String nombre) {
+        return proveedoresRepository.findAll().stream()
+                .anyMatch(p -> p.getNombre().equalsIgnoreCase(nombre));
+    }
 
-        // Verificar si tiene productos asociados
-        if (!proveedor.getProductos().isEmpty()) {
-            throw new RuntimeException("No se puede eliminar el proveedor porque tiene productos asociados");
-        }
-
-        // Verificar si tiene pedidos asociados
-        if (!proveedor.getPedidosProveedors().isEmpty()) {
-            throw new RuntimeException("No se puede eliminar el proveedor porque tiene pedidos asociados");
-        }
-
-        proveedoresRepository.delete(proveedor);
+    @Transactional(readOnly = true)
+    public List<Proveedores> buscarProveedoresPorEmail(String email) {
+        return proveedoresRepository.findAll().stream()
+                .filter(p -> p.getEmail() != null && p.getEmail().equalsIgnoreCase(email))
+                .toList();
     }
 
     private void validarProveedor(Proveedores proveedor) {
-        if (proveedor == null) {
-            throw new RuntimeException("El proveedor no puede ser nulo");
-        }
         if (proveedor.getNombre() == null || proveedor.getNombre().trim().isEmpty()) {
             throw new RuntimeException("El nombre del proveedor es requerido");
         }
-        // El teléfono y email son opcionales, pero si se proporcionan deben ser válidos
-        if (proveedor.getTelefono() != null && proveedor.getTelefono().trim().isEmpty()) {
-            throw new RuntimeException("El teléfono no puede estar vacío");
+        
+        // Validar longitud del nombre
+        if (proveedor.getNombre().length() > 150) {
+            throw new RuntimeException("El nombre del proveedor no puede tener más de 150 caracteres");
         }
-        if (proveedor.getEmail() != null && !proveedor.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-            throw new RuntimeException("El email no tiene un formato válido");
+        
+        // Validar que no exista otro proveedor con el mismo nombre
+        if (existeProveedor(proveedor.getNombre()) && proveedor.getId() == null) {
+            throw new RuntimeException("Ya existe un proveedor con el nombre: " + proveedor.getNombre());
+        }
+        
+        // Validar email si está presente
+        if (proveedor.getEmail() != null && !proveedor.getEmail().isEmpty()) {
+            if (proveedor.getEmail().length() > 150) {
+                throw new RuntimeException("El email no puede tener más de 150 caracteres");
+            }
+            if (!EMAIL_PATTERN.matcher(proveedor.getEmail()).matches()) {
+                throw new RuntimeException("El formato del email no es válido");
+            }
+        }
+        
+        // Validar teléfono si está presente
+        if (proveedor.getTelefono() != null && !proveedor.getTelefono().isEmpty()) {
+            if (proveedor.getTelefono().length() > 50) {
+                throw new RuntimeException("El teléfono no puede tener más de 50 caracteres");
+            }
+            if (!PHONE_PATTERN.matcher(proveedor.getTelefono()).matches()) {
+                throw new RuntimeException("El formato del teléfono no es válido");
+            }
         }
     }
 } 

@@ -1,81 +1,87 @@
 package com.project.minimercado.services.bussines.Inventario;
 
 import com.project.minimercado.model.bussines.Categoria;
-import com.project.minimercado.repository.bussines.CategoriaRepository;
+import com.project.minimercado.repository.bussines.CategoriasRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class CategoriaService {
-    private final CategoriaRepository categoriaRepository;
+    private final CategoriasRepository categoriasRepository;
 
-    public CategoriaService(CategoriaRepository categoriaRepository) {
-        this.categoriaRepository = categoriaRepository;
+    public CategoriaService(CategoriasRepository categoriasRepository) {
+        this.categoriasRepository = categoriasRepository;
     }
 
     @Transactional
-    public Categoria crearCategoria(String nombre) {
-        if (nombre == null || nombre.trim().isEmpty()) {
-            throw new RuntimeException("El nombre de la categoría es requerido");
-        }
-
-        // Verificar si ya existe una categoría con el mismo nombre
-        if (categoriaRepository.existsByNombre(nombre.trim())) {
-            throw new RuntimeException("Ya existe una categoría con ese nombre");
-        }
-
-        Categoria categoria = new Categoria();
-        categoria.setNombre(nombre.trim());
-        return categoriaRepository.save(categoria);
+    public Categoria crearCategoria(Categoria categoria) {
+        validarCategoria(categoria);
+        return categoriasRepository.save(categoria);
     }
 
     @Transactional
-    public void actualizarCategoria(Integer id, String nuevoNombre) {
-        if (nuevoNombre == null || nuevoNombre.trim().isEmpty()) {
-            throw new RuntimeException("El nombre de la categoría es requerido");
-        }
-
-        Categoria categoria = categoriaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
-
-        // Verificar si ya existe otra categoría con el mismo nombre
-        if (!categoria.getNombre().equalsIgnoreCase(nuevoNombre) && 
-            categoriaRepository.existsByNombre(nuevoNombre.trim())) {
-            throw new RuntimeException("Ya existe una categoría con ese nombre");
-        }
-
-        categoria.setNombre(nuevoNombre.trim());
-        categoriaRepository.save(categoria);
-    }
-
-    @Transactional(readOnly = true)
-    public List<Categoria> listarCategorias() {
-        return categoriaRepository.findAll();
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<Categoria> buscarCategoriaPorId(Integer id) {
-        return categoriaRepository.findById(id);
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<Categoria> buscarCategoriaPorNombre(String nombre) {
-        return categoriaRepository.findByNombre(nombre);
+    public Categoria actualizarCategoria(Integer id, Categoria categoriaActualizada) {
+        Categoria categoriaExistente = obtenerCategoriaPorId(id);
+        
+        // Actualizar campos
+        categoriaExistente.setNombre(categoriaActualizada.getNombre());
+        
+        validarCategoria(categoriaExistente);
+        return categoriasRepository.save(categoriaExistente);
     }
 
     @Transactional
     public void eliminarCategoria(Integer id) {
-        Categoria categoria = categoriaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
-
+        Categoria categoria = obtenerCategoriaPorId(id);
+        
         // Verificar si hay productos asociados
         if (!categoria.getProductos().isEmpty()) {
             throw new RuntimeException("No se puede eliminar la categoría porque tiene productos asociados");
         }
+        
+        categoriasRepository.delete(categoria);
+    }
 
-        categoriaRepository.delete(categoria);
+    @Transactional(readOnly = true)
+    public Categoria obtenerCategoriaPorId(Integer id) {
+        return categoriasRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Categoria> listarCategorias() {
+        return categoriasRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Categoria buscarCategoriaPorNombre(String nombre) {
+        return categoriasRepository.findAll().stream()
+                .filter(c -> c.getNombre().equalsIgnoreCase(nombre))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Categoría no encontrada con nombre: " + nombre));
+    }
+
+    @Transactional(readOnly = true)
+    public boolean existeCategoria(String nombre) {
+        return categoriasRepository.findAll().stream()
+                .anyMatch(c -> c.getNombre().equalsIgnoreCase(nombre));
+    }
+
+    private void validarCategoria(Categoria categoria) {
+        if (categoria.getNombre() == null || categoria.getNombre().trim().isEmpty()) {
+            throw new RuntimeException("El nombre de la categoría es requerido");
+        }
+        
+        // Validar longitud del nombre
+        if (categoria.getNombre().length() > 100) {
+            throw new RuntimeException("El nombre de la categoría no puede tener más de 100 caracteres");
+        }
+        
+        // Validar que no exista otra categoría con el mismo nombre
+        if (existeCategoria(categoria.getNombre()) && categoria.getId() == null) {
+            throw new RuntimeException("Ya existe una categoría con el nombre: " + categoria.getNombre());
+        }
     }
 } 
