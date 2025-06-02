@@ -109,7 +109,7 @@ public class VentaService {
         validarPermisosUsuario(usuario);
 
         // Crear la venta
-        Venta venta = crearVentaInicial(usuario, "TARJETA");
+        Venta venta = crearVentaInicial(usuario);
         venta.setEstado("PENDIENTE_PAGO");
         BigDecimal totalVenta = BigDecimal.ZERO;
         List<Product> paymentProducts = new ArrayList<>();
@@ -137,7 +137,7 @@ public class VentaService {
             String paymentUrl = crearSolicitudPago(venta, paymentProducts, totalVenta);
 
             // Guardar venta
-            venta = ventaRepository.save(venta);
+            ventaRepository.save(venta);
 
             return paymentUrl;
         } catch (Exception e) {
@@ -161,11 +161,11 @@ public class VentaService {
         }
     }
 
-    private Venta crearVentaInicial(Usuario usuario, String tipoPago) {
+    private Venta crearVentaInicial(Usuario usuario) {
         Venta venta = new Venta();
         venta.setFecha(Instant.now());
         venta.setIdUsuario(usuario);
-        venta.setTipoPago(tipoPago);
+        venta.setTipoPago("TARJETA");
         return venta;
     }
 

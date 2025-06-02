@@ -1,7 +1,11 @@
 package com.project.minimercado.dto.payment;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Data
 public class PaymentRequest {
     private Cart cart;

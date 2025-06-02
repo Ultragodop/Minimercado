@@ -25,14 +25,19 @@ public class AuthService {
     private static final int MIN_PASSWORD_LENGTH = 8;
     private static final String USERNAME_PATTERN = "^[a-zA-Z0-9_]{3,20}$";
 
-    @Autowired
-    private JWTService jwtService;
 
-    @Autowired
-    private AuthenticationManager authManager;
+    private final JWTService jwtService;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+
+    private final AuthenticationManager authManager;
+
+
+    private final UsuarioRepository usuarioRepository;
+public AuthService(JWTService jwtService, AuthenticationManager authManager, UsuarioRepository usuarioRepository) {
+        this.jwtService = jwtService;
+        this.authManager = authManager;
+        this.usuarioRepository = usuarioRepository;
+    }
 
     @Transactional
     public LoginResponse login(LoginRequest loginRequest) {
@@ -61,6 +66,7 @@ public class AuthService {
                         .orElse("ROLE_USER");
 
                 String token = jwtService.generateToken(loginRequest.getUsername(), role);
+                System.out.println("Token generado: " + token);
                 return new LoginResponse("success", token);
             }
 

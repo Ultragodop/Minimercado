@@ -16,7 +16,7 @@ import java.util.Set;
 @Entity
 
 @Table(name = "usuarios", schema = "minimercado", uniqueConstraints = {
-        @UniqueConstraint(name = "usuario", columnNames = {"usuario"})
+        @UniqueConstraint(name = "usuario", columnNames = {"usuarios"})
 })
 public class Usuario {
     @Id

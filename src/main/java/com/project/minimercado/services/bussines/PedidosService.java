@@ -18,18 +18,26 @@ import java.util.Set;
 @Service
 public class PedidosService {
 
-    @Autowired
-    private PedidosProveedorRepository pedidosRepository;
 
-    @Autowired
-    private DetallePedidoProveedorRepository detalleRepository;
+    private final PedidosProveedorRepository pedidosRepository;
 
-    @Autowired
-    private ProveedoresRepository proveedoresRepository;
 
-    @Autowired
-    private ProductosRepository productosRepository;
+    private final DetallePedidoProveedorRepository detalleRepository;
 
+
+    private final ProveedoresRepository proveedoresRepository;
+
+
+    private final ProductosRepository productosRepository;
+public PedidosService(PedidosProveedorRepository pedidosRepository,
+                          DetallePedidoProveedorRepository detalleRepository,
+                          ProveedoresRepository proveedoresRepository,
+                          ProductosRepository productosRepository) {
+        this.pedidosRepository = pedidosRepository;
+        this.detalleRepository = detalleRepository;
+        this.proveedoresRepository = proveedoresRepository;
+        this.productosRepository = productosRepository;
+    }
     public List<PedidosProveedor> getAllPedidos() {
         return pedidosRepository.findAll();
     }

@@ -11,9 +11,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class MyUsrDtlsService implements UserDetailsService {
-    @Autowired
-    private UsuarioRepository usuariorepository;
 
+    private final UsuarioRepository usuariorepository;
+public MyUsrDtlsService(UsuarioRepository usuariorepository) {
+        this.usuariorepository = usuariorepository;
+    }
     /*
      * Este metodo es el que se encarga de cargar el usuario desde la base de datos
      * y devolverlo a Spring Security

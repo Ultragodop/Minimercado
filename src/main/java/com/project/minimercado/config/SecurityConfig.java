@@ -10,6 +10,8 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,38 +23,41 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.Collections;
+
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
     private final JWTAuthFilter jwtAuthFilter;
     private final MyUsrDtlsService userDetailsService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/devoluciones/**").hasAnyRole("ADMIN", "GERENTE")
-                .requestMatchers("/api/ventas/**").hasAnyRole("ADMIN", "GERENTE", "VENDEDOR")
-                .requestMatchers("/api/productos/**").hasAnyRole("ADMIN", "GERENTE", "VENDEDOR")
-                .requestMatchers("/api/inventario/**").hasAnyRole("ADMIN", "GERENTE")
-                .requestMatchers("/api/reportes/**").hasAnyRole("ADMIN", "GERENTE")
-                .anyRequest().authenticated()
-            )
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .headers(headers -> headers
-                .frameOptions(frame -> frame.deny())
-                .xssProtection(xss -> xss.disable())
-                .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'"))
-            )
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/devoluciones/**").hasAnyRole("ADMIN", "GERENTE")
+                        .requestMatchers("/api/ventas/**").hasAnyRole("ADMIN", "GERENTE", "VENDEDOR")
+                        .requestMatchers("/api/productos/**").hasAnyRole("ADMIN", "GERENTE", "VENDEDOR")
+                        .requestMatchers("/api/inventario/**").hasAnyRole("ADMIN", "GERENTE")
+                        .requestMatchers("/api/reportes/**").hasAnyRole("ADMIN", "GERENTE")
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .headers(headers -> headers
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::deny)
+                        .xssProtection(HeadersConfigurer.XXssConfig::disable)
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'"))
+                )
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -60,13 +65,43 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3050")); // Ajusta según tu frontend
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-CSRF-TOKEN"));
+
+        // Lista explícita de orígenes permitidos (sin el valor "null")
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:[0-9]+",
+                "http://127.0.0.1:[0-9]+"
+        ));
+
+        configuration.setAllowedMethods(Arrays.asList(
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "OPTIONS"
+        ));
+
+        configuration.setAllowedHeaders(Arrays.asList(
+                "Authorization",
+                "Content-Type",
+                "X-CSRF-TOKEN",
+                "Accept",
+                "Origin",
+                "Access-Control-Request-Method",
+                "Access-Control-Request-Headers",
+                "X-Requested-With"
+        ));
+
         configuration.setAllowCredentials(true);
-        
+        configuration.setMaxAge(3600L);
+
+        configuration.setExposedHeaders(Arrays.asList(
+                "Access-Control-Allow-Origin",
+                "Access-Control-Allow-Credentials"
+        ));
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 
@@ -85,6 +120,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(12); // Aumentado a 12 para mayor seguridad
+        return new BCryptPasswordEncoder(12);
     }
 }
