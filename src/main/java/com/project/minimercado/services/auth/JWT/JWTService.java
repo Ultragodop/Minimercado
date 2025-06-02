@@ -17,6 +17,7 @@ import java.util.function.Function;
 
 @Service
 public class JWTService {
+    //Esto es una mala practica ya que hardcodea la jwt secret key
     @Value("${jwt.secret}")
     private String secretKey;
 

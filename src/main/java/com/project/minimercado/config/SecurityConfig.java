@@ -69,7 +69,9 @@ public class SecurityConfig {
         // Lista explícita de orígenes permitidos (sin el valor "null")
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:[0-9]+",
-                "http://127.0.0.1:[0-9]+"
+                "http://127.0.0.1:[0-9]+",
+                "null"
+
         ));
 
         configuration.setAllowedMethods(Arrays.asList(
@@ -110,6 +112,7 @@ public class SecurityConfig {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
+
         return authProvider;
     }
 

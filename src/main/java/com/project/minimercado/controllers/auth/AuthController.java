@@ -46,21 +46,26 @@ public class AuthController {
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
         try {
             RegisterResponse response = authService.register(registerRequest);
+
             if ("success".equals(response.getStatus())) {
                 return ResponseEntity.ok()
                         .header("X-Content-Type-Options", "nosniff")
                         .header("X-Frame-Options", "DENY")
                         .header("X-XSS-Protection", "1; mode=block")
                         .body(response);
+
             }
+
             return ResponseEntity.badRequest()
                     .header("X-Content-Type-Options", "nosniff")
                     .header("X-Frame-Options", "DENY")
                     .header("X-XSS-Protection", "1; mode=block")
                     .body(response);
         } catch (Exception e) {
+
             return ResponseEntity.internalServerError()
                     .body(new RegisterResponse("error", "Error interno del servidor"));
+
         }
     }
 }

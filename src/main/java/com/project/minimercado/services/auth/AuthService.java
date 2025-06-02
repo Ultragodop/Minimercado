@@ -94,7 +94,7 @@ public AuthService(JWTService jwtService, AuthenticationManager authManager, Usu
             newUsuario.setNombre(registerRequest.getUsername());
             newUsuario.setPasswordHash(encryptor.encode(registerRequest.getPassword()));
             newUsuario.setRol(registerRequest.getRol() != null ? registerRequest.getRol() : "USER");
-            
+
             usuarioRepository.save(newUsuario);
             return new RegisterResponse("success", "Registro exitoso");
         } catch (Exception e) {
