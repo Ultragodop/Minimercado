@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -65,4 +66,8 @@ public class Producto {
 
     @OneToMany(mappedBy = "idProducto")
     private Set<DetalleVenta> detalleVentas = new LinkedHashSet<>();
+
+    public Collectors stream() {
+        return null;
+    }
 }

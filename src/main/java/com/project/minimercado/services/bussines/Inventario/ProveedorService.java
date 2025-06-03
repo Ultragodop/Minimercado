@@ -1,5 +1,6 @@
 package com.project.minimercado.services.bussines.Inventario;
 
+import com.project.minimercado.dto.bussines.Inventario.ProveedorProductosDTO;
 import com.project.minimercado.model.bussines.Proveedores;
 import com.project.minimercado.repository.bussines.ProveedoresRepository;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,7 @@ public class ProveedorService {
 
     @Transactional
     public Proveedores actualizarProveedor(Integer id, Proveedores proveedorActualizado) {
-        Proveedores proveedorExistente = obtenerProveedorPorId(id);
+        Proveedores proveedorExistente = (Proveedores) obtenerProveedorPorId(id);
         
         // Actualizar campos
         proveedorExistente.setNombre(proveedorActualizado.getNombre());
@@ -40,24 +41,24 @@ public class ProveedorService {
 
     @Transactional
     public void eliminarProveedor(Integer id) {
-        Proveedores proveedor = obtenerProveedorPorId(id);
+        ProveedorProductosDTO proveedor = obtenerProveedorPorId(id);
         
         // Verificar si hay productos asociados
-        if (!proveedor.getProductos().isEmpty()) {
+        if (!existeProveedor(proveedor.getNombre())) {
             throw new RuntimeException("No se puede eliminar el proveedor porque tiene productos asociados");
         }
         
         // Verificar si hay pedidos asociados
-        if (!proveedor.getPedidosProveedors().isEmpty()) {
+        if (!existeProveedor(proveedor.getPedidosProveedors())) {
             throw new RuntimeException("No se puede eliminar el proveedor porque tiene pedidos asociados");
         }
         
-        proveedoresRepository.delete(proveedor);
+        proveedoresRepository.delete((Proveedores) proveedor);
     }
 
     @Transactional(readOnly = true)
-    public Proveedores obtenerProveedorPorId(Integer id) {
-        return proveedoresRepository.findById(id)
+    public ProveedorProductosDTO obtenerProveedorPorId(Integer id) {
+        return proveedoresRepository.findProveedoresConProductos(id)
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con ID: " + id));
     }
 

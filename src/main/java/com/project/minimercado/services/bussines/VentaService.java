@@ -25,7 +25,6 @@ public class VentaService {
     private final VentaRepository ventaRepository;
     private final ProductosRepository productoRepository;
     private final TransaccionesRepository transaccionesRepository;
-    private final DetalleVentaRepository detalleVentaRepository;
     private final PaymentService paymentService;
     private final PaymentConfig paymentConfig;
 
@@ -38,7 +37,6 @@ public class VentaService {
         this.ventaRepository = ventaRepository;
         this.productoRepository = productoRepository;
         this.transaccionesRepository = transaccionesRepository;
-        this.detalleVentaRepository = detalleVentaRepository;
         this.paymentService = paymentService;
         this.paymentConfig = paymentConfig;
     }

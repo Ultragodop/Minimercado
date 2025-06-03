@@ -60,6 +60,7 @@ public AuthService(JWTService jwtService, AuthenticationManager authManager, Usu
 
             if (authentication.isAuthenticated()) {
                 UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+                System.out.println(userDetails.getAuthorities());
                 String role = userDetails.getAuthorities().stream()
                         .findFirst()
                         .map(GrantedAuthority::getAuthority)

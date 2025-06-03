@@ -38,8 +38,10 @@ public class Proveedores {
     @Column(name = "fecha_actualizacion")
     private Instant fechaActualizacion;
 
-    @OneToMany(mappedBy = "idProveedor")
-    private Set<Producto> productos = new LinkedHashSet<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+
+    private Producto producto;
+
 
     @OneToMany(mappedBy = "idProveedor")
     private Set<PedidosProveedor> pedidosProveedors = new LinkedHashSet<>();
@@ -53,4 +55,6 @@ public class Proveedores {
     protected void onUpdate() {
         fechaActualizacion = Instant.now();
     }
+
+
 }

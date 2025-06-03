@@ -19,7 +19,7 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @PostMapping("/login")
+    @PostMapping(value ="/login", consumes = "application/json", produces = "application/json")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         try {
             LoginResponse response = authService.login(loginRequest);
@@ -42,7 +42,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/register")
+    @PostMapping(value = "/register", consumes = "application/json", produces = "application/json")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
         try {
             RegisterResponse response = authService.register(registerRequest);

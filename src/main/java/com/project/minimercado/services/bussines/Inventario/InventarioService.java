@@ -1,5 +1,6 @@
 package com.project.minimercado.services.bussines.Inventario;
 
+import com.project.minimercado.dto.bussines.Inventario.ProductoDTO;
 import com.project.minimercado.model.bussines.Categoria;
 import com.project.minimercado.model.bussines.Producto;
 import com.project.minimercado.model.bussines.Proveedores;
@@ -87,7 +88,7 @@ public class InventarioService {
             Map<String, Object> infoProveedor = new HashMap<>();
             
             // Obtener productos del proveedor
-            List<Producto> productosProveedor = proveedor.getProductos().stream().toList();
+            List<Producto> productosProveedor = (List<Producto>) proveedor.getProducto().stream().toList();
             
             infoProveedor.put("totalProductos", productosProveedor.size());
             
@@ -167,6 +168,10 @@ public class InventarioService {
     @Transactional
     public Producto crearProducto(Producto producto) {
         return productoService.crearProducto(producto);
+    }
+    @Transactional
+    public List<ProductoDTO> listarProductos() {
+        return productoService.obtenerProductos();
     }
 
     @Transactional

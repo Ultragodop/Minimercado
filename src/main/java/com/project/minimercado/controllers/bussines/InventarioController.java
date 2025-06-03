@@ -1,5 +1,6 @@
 package com.project.minimercado.controllers.bussines;
 
+import com.project.minimercado.dto.bussines.Inventario.ProductoDTO;
 import com.project.minimercado.model.bussines.Producto;
 import com.project.minimercado.services.bussines.Inventario.InventarioService;
 import lombok.extern.slf4j.Slf4j;
@@ -70,7 +71,7 @@ public class InventarioController {
         }
     }
 
-    @PostMapping("/producto")
+    @PostMapping(value="/producto", consumes = "application/json", produces = "application/json")
     public ResponseEntity<Producto> agregarProducto(@RequestBody Producto producto) {
         try {
             return ResponseEntity.ok(inventarioService.crearProducto(producto));
@@ -123,6 +124,16 @@ public class InventarioController {
             log.error("Error al obtener producto", e);
             return ResponseEntity.internalServerError().build();
         }
+    }
+    @GetMapping("/todos-productos")
+    public ResponseEntity<List<ProductoDTO>> obtenerTodosLosProductos() {
+        try {
+            return ResponseEntity.ok(inventarioService.listarProductos());
+        } catch (Exception e) {
+            log.error("Error al obtener productos", e);
+            return ResponseEntity.internalServerError().build();
+        }
+
     }
 
     @GetMapping("/productos/activos")

@@ -41,11 +41,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/devoluciones/**").hasAnyRole("ADMIN", "GERENTE")
-                        .requestMatchers("/api/ventas/**").hasAnyRole("ADMIN", "GERENTE", "VENDEDOR")
-                        .requestMatchers("/api/productos/**").hasAnyRole("ADMIN", "GERENTE", "VENDEDOR")
-                        .requestMatchers("/api/inventario/**").hasAnyRole("ADMIN", "GERENTE")
-                        .requestMatchers("/api/reportes/**").hasAnyRole("ADMIN", "GERENTE")
+                        .requestMatchers("/api/inventario/**").hasAnyRole("ADMIN", "INVENTARIO")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -71,6 +67,7 @@ public class SecurityConfig {
                 "http://localhost:[0-9]+",
                 "http://127.0.0.1:[0-9]+",
                 "null"
+
 
         ));
 
@@ -110,6 +107,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
 

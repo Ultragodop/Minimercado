@@ -17,9 +17,7 @@ public class PaymentConfig {
     private String callbackUrl;
     private boolean testMode;
 
-    public void setMerchantSecret(String merchantSecret) {
-        this.merchantSecret = "";
-    }
+
 
     @Bean
     public RestTemplate paymentRestTemplate() {

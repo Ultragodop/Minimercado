@@ -1,5 +1,6 @@
 package com.project.minimercado.services.bussines.Inventario;
 
+import com.project.minimercado.dto.bussines.Inventario.ProductoDTO;
 import com.project.minimercado.model.bussines.Categoria;
 import com.project.minimercado.model.bussines.Producto;
 import com.project.minimercado.repository.bussines.ProductosRepository;
@@ -7,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ProductosService {
@@ -21,6 +21,15 @@ public class ProductosService {
     public Producto crearProducto(Producto producto) {
         validateproduct(producto);
         return productosRepository.save(producto);
+    }
+    public List<ProductoDTO> obtenerProductos() {
+
+       try {
+           return productosRepository.findAllProductoDTOs();
+       }catch (Exception e) {
+            throw new UnsupportedOperationException("No se puede obtener un producto");
+
+        }
     }
 
     @Transactional
