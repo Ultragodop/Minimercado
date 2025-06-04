@@ -1,5 +1,8 @@
 package com.project.minimercado.exception;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.minimercado.model.chat.ChatMessage;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -14,21 +17,25 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final List<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) {
+    public void afterConnectionEstablished(@NotNull WebSocketSession session) {
         sessions.add(session);
     }
 
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+    protected void handleTextMessage(@NotNull WebSocketSession session, @NotNull TextMessage message) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        ChatMessage chatMessage = mapper.readValue(message.getPayload(), ChatMessage.class);
+
         for (WebSocketSession s : sessions) {
             if (s.isOpen()) {
-                s.sendMessage(new TextMessage("Echo: " + message.getPayload()));
+                String jsonMessage = mapper.writeValueAsString(chatMessage);
+                s.sendMessage(new TextMessage(jsonMessage));
             }
         }
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+    public void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus status) {
         sessions.remove(session);
     }
 }
