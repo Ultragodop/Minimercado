@@ -38,9 +38,8 @@ public class Proveedores {
     @Column(name = "fecha_actualizacion")
     private Instant fechaActualizacion;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-
-    private Producto producto;
+    @OneToMany(mappedBy = "idProveedor")
+    private Set<Producto> productos = new LinkedHashSet<>();
 
 
     @OneToMany(mappedBy = "idProveedor")
@@ -57,4 +56,7 @@ public class Proveedores {
     }
 
 
+    public Producto getProducto() {
+        return new Producto();
+    }
 }

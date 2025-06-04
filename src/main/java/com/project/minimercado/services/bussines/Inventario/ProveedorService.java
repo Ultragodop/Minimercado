@@ -12,8 +12,12 @@ import java.util.regex.Pattern;
 @Service
 public class ProveedorService {
     private final ProveedoresRepository proveedoresRepository;
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
-    private static final Pattern PHONE_PATTERN = Pattern.compile("^[+]?[(]?[0-9]{3}[)]?[-\\s.]?[0-9]{3}[-\\s.]?[0-9]{4,6}$");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+            "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$"
+    );
+
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^\\d{8,15}$");
+
 
     public ProveedorService(ProveedoresRepository proveedoresRepository) {
         this.proveedoresRepository = proveedoresRepository;
