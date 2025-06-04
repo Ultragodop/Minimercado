@@ -84,9 +84,21 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
             final String jwt = authHeader.substring(7);
 
-            // Paso 2: Verificación de caché de token
+            // 2) Si está en caché como válido, resuelvo UserDetails y vuelvo a setear Authentication
             Boolean isValid = validTokenCache.getIfPresent(jwt);
             if (Boolean.TRUE.equals(isValid)) {
+                // Extraigo username del JWT (sin lanzar más validaciones, pues ya está cacheado)
+                String username = jwtService.extractUsername(jwt);
+                if (username != null) {
+                    // Busco UserDetails en caché o en el servicio
+                    UserDetails userDetails = userDetailsCache.getIfPresent(username);
+                    if (userDetails == null) {
+                        userDetails = userDetailsService.loadUserByUsername(username);
+                        userDetailsCache.put(username, userDetails);
+                    }
+                    // **IMPORTANTE**: seteo la autenticación en el contexto para esta petición
+                    setAuthentication(userDetails, request);
+                }
                 filterChain.doFilter(request, response);
                 return;
             }
@@ -103,9 +115,12 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 sendError(response, "Username not found in token", HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
-
+            long start = System.currentTimeMillis();
             // Paso 5: Carga async con caché y timeout
-            UserDetails userDetails = loadUserDetailsAsync(username).get(300, TimeUnit.MILLISECONDS);
+            UserDetails userDetails = loadUserDetailsAsync(username).get(2000, TimeUnit.MILLISECONDS);
+
+            long duration = System.currentTimeMillis() - start;
+            System.out.println("Tiempo carga UserDetails para " + username + ": " + duration + " ms");
 
             // Paso 6: Validación final del token
             if (jwtService.validateToken(jwt, userDetails)) {
