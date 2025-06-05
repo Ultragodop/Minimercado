@@ -67,7 +67,7 @@ public AuthService(JWTService jwtService, AuthenticationManager authManager, Usu
                         .orElse("ROLE_USER");
 
                 String token = jwtService.generateToken(loginRequest.getUsername(), role);
-                System.out.println("Token generado: " + token);
+
                 return new LoginResponse("success", token);
             }
 
