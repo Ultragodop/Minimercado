@@ -8,6 +8,7 @@ public class MinimercadoApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(MinimercadoApplication.class, args);
+        System.out.println("Minimercado Application Started");
     }
 
 }

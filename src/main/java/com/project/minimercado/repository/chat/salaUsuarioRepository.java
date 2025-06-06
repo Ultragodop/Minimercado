@@ -1,0 +1,7 @@
+package com.project.minimercado.repository.chat;
+
+import com.project.minimercado.model.chat.SalaUsuario;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface salaUsuarioRepository extends JpaRepository<SalaUsuario, Integer> {
+}

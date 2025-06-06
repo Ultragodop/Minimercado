@@ -1,21 +1,37 @@
 package com.project.minimercado.model.chat;
 
-import lombok.Getter;
-import lombok.Setter;
+import com.project.minimercado.model.bussines.Usuario;
+import jakarta.persistence.*;
 
-@Getter
-@Setter
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "chatmessage", schema = "minimercado")
 public class ChatMessage {
-    private String usuario;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "sala_id")
+    private SalaChat sala;
+
+    @ManyToOne
+    @JoinColumn(name = "id_usuario")
+    private Usuario usuario;
+
+
     private String mensaje;
 
-    public ChatMessage() {}  // Para Jackson si usás JSON
+    private LocalDateTime timestamp;
 
-    public ChatMessage(String usuario, String mensaje) {
-        this.usuario = usuario;
-        this.mensaje = mensaje;
+    @PrePersist
+    public void prePersist() {
+        timestamp = LocalDateTime.now();
     }
 
-
+    // Constructores, getters y setters
 }
+
 

@@ -12,5 +12,4 @@ public interface VentaRepository extends JpaRepository<Venta, Integer> {
     Optional<Venta> findByTransactionExternalId(String transactionExternalId);
 
     Optional<Venta> findById(Integer id);
-
 }

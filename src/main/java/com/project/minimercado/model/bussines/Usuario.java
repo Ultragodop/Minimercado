@@ -1,12 +1,17 @@
 package com.project.minimercado.model.bussines;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.project.minimercado.model.chat.SalaChat;
+import com.project.minimercado.model.chat.SalaUsuario;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -16,13 +21,15 @@ import java.util.Set;
 @Entity
 
 @Table(name = "usuarios", schema = "minimercado", uniqueConstraints = {
-        @UniqueConstraint(name = "usuario", columnNames = {"usuarios"})
+        @UniqueConstraint(name = "usuario", columnNames = {"nombre"})
 })
+
+
 public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_usuario", nullable = false)
-    private Integer id;
+    private Long id;
 
     @Column(name = "nombre", nullable = false, length = 150)
     private String nombre;
@@ -34,7 +41,14 @@ public class Usuario {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @OneToMany(mappedBy = "idUsuario")
-    private Set<com.project.minimercado.model.bussines.Venta> ventas = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<SalaUsuario> salasUsuario = new ArrayList<>();
+
+    @OneToMany(mappedBy = "usuario")
+    @JsonIgnore
+    private Set<Venta> ventas = new LinkedHashSet<>();
+
+
 
 }
