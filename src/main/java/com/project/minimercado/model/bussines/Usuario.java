@@ -1,7 +1,6 @@
 package com.project.minimercado.model.bussines;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.project.minimercado.model.chat.SalaChat;
 import com.project.minimercado.model.chat.SalaUsuario;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

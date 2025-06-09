@@ -117,8 +117,8 @@ public class FacturacionService {
     }
 
     private byte[] generarPDF(Ticket ticket) {
-        // Aquí implementarías la generación del PDF
-        // Por ahora retornamos un array de bytes vacío
+
+
         return new byte[0];
     }
 } 

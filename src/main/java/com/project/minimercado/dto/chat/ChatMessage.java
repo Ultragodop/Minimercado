@@ -18,4 +18,5 @@ public class ChatMessage {
     public String getMensaje() {
         return mensaje;
     }
+
 }
