@@ -7,11 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
+
 public interface ProductosRepository extends JpaRepository<Producto, Integer> {
     List<Producto> findProductoByIdCategoria(Categoria idCategoria);
 
     List<Producto> findByNombre(String nombre);
-
 
         // Obtener productos con nombres de categoría y proveedor
         @Query("SELECT p.id AS id, p.nombre AS nombre, p.descripcion AS descripcion, " +

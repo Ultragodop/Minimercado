@@ -24,6 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "http://localhost:[0-9]+",
                         "http://127.0.0.1:[0-9]+",
                         "null"
+
                 )  // En producción, reemplazar con dominios específicos
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")

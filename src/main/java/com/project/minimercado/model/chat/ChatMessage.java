@@ -31,7 +31,9 @@ public class ChatMessage {
         timestamp = LocalDateTime.now();
     }
 
-    // Constructores, getters y setters
+    public Usuario getUsuario() {
+        return usuario;
+    }
 }
 
 
