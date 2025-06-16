@@ -9,6 +9,7 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+
 @Entity
 @Table(name = "salachat") // Asegurate que coincida con tu tabla real
 @Getter

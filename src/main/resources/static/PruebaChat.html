@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self';" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8"/>
+    <meta content="default-src 'self'; script-src 'self';" http-equiv="Content-Security-Policy"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Chat con STOMP y Spring Boot</title>
 </head>
 <body>
 <h1>Chat usando WebSocket con STOMP</h1>
 
-<textarea id="mensajes" rows="10" cols="50" readonly></textarea><br />
+<label for="mensajes"></label><textarea cols="50" id="mensajes" readonly rows="10"></textarea><br/>
 
-<input type="text" id="mensaje" placeholder="Escriba su mensaje..." />
+<label for="mensaje"></label><input id="mensaje" placeholder="Escriba su mensaje..." type="text"/>
 <button onclick="enviarMensaje()">Enviar</button>
 
 <!-- Scripts JS externos en la carpeta estática js -->

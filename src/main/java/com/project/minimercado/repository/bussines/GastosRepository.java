@@ -8,6 +8,8 @@ import java.util.List;
 
 public interface GastosRepository extends JpaRepository<Gasto, Integer> {
     List<Gasto> findByFecha(LocalDate fecha);
+
     List<Gasto> findByCategoriaGasto(String categoriaGasto);
+
     List<Gasto> findByFechaBetween(LocalDate fechaInicio, LocalDate fechaFin);
 } 

@@ -18,7 +18,6 @@ public class PaymentConfig {
     private boolean testMode;
 
 
-
     @Bean
     public RestTemplate paymentRestTemplate() {
         return new RestTemplate();

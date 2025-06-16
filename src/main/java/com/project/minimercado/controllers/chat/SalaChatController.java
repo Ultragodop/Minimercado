@@ -1,7 +1,6 @@
 package com.project.minimercado.controllers.chat;
 
 import com.project.minimercado.dto.chat.CrearSalaRequest;
-import com.project.minimercado.model.bussines.Usuario;
 import com.project.minimercado.model.chat.SalaChat;
 import com.project.minimercado.services.chat.SalaChatService;
 import org.springframework.http.ResponseEntity;
@@ -9,8 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static java.lang.String.valueOf;
 
 @RestController
 @RequestMapping("/api/salas")
@@ -38,6 +35,7 @@ public class SalaChatController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(nombres);
     }
+
     @GetMapping("/userid")
     public ResponseEntity<Long> obteneridporusuario(@RequestParam String nombre) {
         Long v = salaChatService.obteneridporusuario(nombre);

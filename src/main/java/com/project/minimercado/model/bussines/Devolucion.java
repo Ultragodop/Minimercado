@@ -3,6 +3,7 @@ package com.project.minimercado.model.bussines;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.LinkedHashSet;
@@ -12,8 +13,8 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "devoluciones", schema = "minimercado", indexes = {
-    @Index(name = "idx_dev_venta", columnList = "id_venta"),
-    @Index(name = "idx_dev_usuario", columnList = "id_usuario")
+        @Index(name = "idx_dev_venta", columnList = "id_venta"),
+        @Index(name = "idx_dev_usuario", columnList = "id_usuario")
 })
 public class Devolucion {
     @Id

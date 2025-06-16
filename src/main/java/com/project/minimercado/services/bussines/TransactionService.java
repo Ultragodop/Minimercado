@@ -35,7 +35,7 @@ public class TransactionService {
     @Transactional(readOnly = true)
     public BigDecimal obtenerBalanceDiario(LocalDate fecha) {
         List<MovimientosContable> movimientos = obtenerMovimientosPorFecha(fecha);
-        
+
         BigDecimal ingresos = movimientos.stream()
                 .filter(m -> "INGRESO".equals(m.getTipo()))
                 .map(MovimientosContable::getMonto)

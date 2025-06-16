@@ -2,6 +2,7 @@ package com.project.minimercado.model.bussines;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
 import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Set;

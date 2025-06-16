@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Objects;
+
 @Getter
 @Setter
 @Embeddable
@@ -17,7 +18,7 @@ public class SalaUsuarioId implements Serializable {
     private Long salaId;
 
     @MapsId("usuarioId")  // ✔ correcto
-private Long usuarioId;
+    private Long usuarioId;
 
     // equals y hashCode son obligatorios
     @Override

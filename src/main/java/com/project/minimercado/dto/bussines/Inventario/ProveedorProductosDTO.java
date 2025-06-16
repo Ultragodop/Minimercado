@@ -3,25 +3,26 @@ package com.project.minimercado.dto.bussines.Inventario;
 import java.util.List;
 
 // DTO para Proveedor con nombres de productos
-public interface ProveedorProductosDTO  {
+public interface ProveedorProductosDTO {
     Integer getId();
-    String getNombre();
 
-    List<String> getProductosNombres();
+    String getNombre();
 
     void setNombre(String nombre);
 
-    void setTelefono(String telefono);
-
-    void setEmail(String email);
-
-    void setDireccion(String direccion);
+    List<String> getProductosNombres();
 
     String getTelefono();
 
+    void setTelefono(String telefono);
+
     String getEmail();
 
+    void setEmail(String email);
+
     String getDireccion();
+
+    void setDireccion(String direccion);
 
     String getPedidosProveedors();
 }

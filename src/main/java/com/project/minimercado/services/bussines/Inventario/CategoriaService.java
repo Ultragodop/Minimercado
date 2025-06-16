@@ -24,10 +24,10 @@ public class CategoriaService {
     @Transactional
     public Categoria actualizarCategoria(Integer id, Categoria categoriaActualizada) {
         Categoria categoriaExistente = obtenerCategoriaPorId(id);
-        
+
         // Actualizar campos
         categoriaExistente.setNombre(categoriaActualizada.getNombre());
-        
+
         validarCategoria(categoriaExistente);
         return categoriasRepository.save(categoriaExistente);
     }
@@ -35,12 +35,12 @@ public class CategoriaService {
     @Transactional
     public void eliminarCategoria(Integer id) {
         Categoria categoria = obtenerCategoriaPorId(id);
-        
+
         // Verificar si hay productos asociados
         if (!categoria.getProductos().isEmpty()) {
             throw new RuntimeException("No se puede eliminar la categoría porque tiene productos asociados");
         }
-        
+
         categoriasRepository.delete(categoria);
     }
 
@@ -73,12 +73,12 @@ public class CategoriaService {
         if (categoria.getNombre() == null || categoria.getNombre().trim().isEmpty()) {
             throw new RuntimeException("El nombre de la categoría es requerido");
         }
-        
+
         // Validar longitud del nombre
         if (categoria.getNombre().length() > 100) {
             throw new RuntimeException("El nombre de la categoría no puede tener más de 100 caracteres");
         }
-        
+
         // Validar que no exista otra categoría con el mismo nombre
         if (existeCategoria(categoria.getNombre()) && categoria.getId() == null) {
             throw new RuntimeException("Ya existe una categoría con el nombre: " + categoria.getNombre());

@@ -24,6 +24,6 @@ function mostrarMensaje(mensaje) {
     area.value += mensaje + "\n";
 }
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     conectar();
 });

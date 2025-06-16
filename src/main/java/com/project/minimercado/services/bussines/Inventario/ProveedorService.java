@@ -11,12 +11,11 @@ import java.util.regex.Pattern;
 
 @Service
 public class ProveedorService {
-    private final ProveedoresRepository proveedoresRepository;
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
             "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$"
     );
-
     private static final Pattern PHONE_PATTERN = Pattern.compile("^\\d{8,15}$");
+    private final ProveedoresRepository proveedoresRepository;
 
 
     public ProveedorService(ProveedoresRepository proveedoresRepository) {
@@ -32,13 +31,13 @@ public class ProveedorService {
     @Transactional
     public Proveedores actualizarProveedor(Integer id, Proveedores proveedorActualizado) {
         Proveedores proveedorExistente = (Proveedores) obtenerProveedorPorId(id);
-        
+
         // Actualizar campos
         proveedorExistente.setNombre(proveedorActualizado.getNombre());
         proveedorExistente.setTelefono(proveedorActualizado.getTelefono());
         proveedorExistente.setEmail(proveedorActualizado.getEmail());
         proveedorExistente.setDireccion(proveedorActualizado.getDireccion());
-        
+
         validarProveedor(proveedorExistente);
         return proveedoresRepository.save(proveedorExistente);
     }
@@ -46,17 +45,17 @@ public class ProveedorService {
     @Transactional
     public void eliminarProveedor(Integer id) {
         ProveedorProductosDTO proveedor = obtenerProveedorPorId(id);
-        
+
         // Verificar si hay productos asociados
         if (!existeProveedor(proveedor.getNombre())) {
             throw new RuntimeException("No se puede eliminar el proveedor porque tiene productos asociados");
         }
-        
+
         // Verificar si hay pedidos asociados
         if (!existeProveedor(proveedor.getPedidosProveedors())) {
             throw new RuntimeException("No se puede eliminar el proveedor porque tiene pedidos asociados");
         }
-        
+
         proveedoresRepository.delete((Proveedores) proveedor);
     }
 
@@ -96,17 +95,17 @@ public class ProveedorService {
         if (proveedor.getNombre() == null || proveedor.getNombre().trim().isEmpty()) {
             throw new RuntimeException("El nombre del proveedor es requerido");
         }
-        
+
         // Validar longitud del nombre
         if (proveedor.getNombre().length() > 150) {
             throw new RuntimeException("El nombre del proveedor no puede tener más de 150 caracteres");
         }
-        
+
         // Validar que no exista otro proveedor con el mismo nombre
         if (existeProveedor(proveedor.getNombre()) && proveedor.getId() == null) {
             throw new RuntimeException("Ya existe un proveedor con el nombre: " + proveedor.getNombre());
         }
-        
+
         // Validar email si está presente
         if (proveedor.getEmail() != null && !proveedor.getEmail().isEmpty()) {
             if (proveedor.getEmail().length() > 150) {
@@ -116,7 +115,7 @@ public class ProveedorService {
                 throw new RuntimeException("El formato del email no es válido");
             }
         }
-        
+
         // Validar teléfono si está presente
         if (proveedor.getTelefono() != null && !proveedor.getTelefono().isEmpty()) {
             if (proveedor.getTelefono().length() > 50) {

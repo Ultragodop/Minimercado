@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TransaccionesRepository extends JpaRepository<MovimientosContable, Integer> {
-    
+
     List<MovimientosContable> findByFechaBetweenOrderByFechaDesc(Instant fechaInicio, Instant fechaFin);
-    
+
     List<MovimientosContable> findByTipoOrderByFechaDesc(String tipo);
-    
+
     Optional<MovimientosContable> findByReferencia(String referencia);
-    
+
     @Query(value = "SELECT m FROM MovimientosContable m ORDER BY m.fecha DESC LIMIT :n")
     List<MovimientosContable> findTopNByOrderByFechaDesc(@Param("n") int n);
 }

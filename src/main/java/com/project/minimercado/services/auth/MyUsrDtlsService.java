@@ -1,8 +1,8 @@
 package com.project.minimercado.services.auth;
+
 import com.project.minimercado.model.bussines.Usuario;
 import com.project.minimercado.model.login.UserPrincipal;
 import com.project.minimercado.repository.bussines.UsuarioRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -14,9 +14,11 @@ import org.springframework.stereotype.Service;
 public class MyUsrDtlsService implements UserDetailsService {
 
     private final UsuarioRepository usuariorepository;
-public MyUsrDtlsService(UsuarioRepository usuariorepository) {
+
+    public MyUsrDtlsService(UsuarioRepository usuariorepository) {
         this.usuariorepository = usuariorepository;
     }
+
     /*
      * Este metodo es el que se encarga de cargar el usuario desde la base de datos
      * y devolverlo a Spring Security
@@ -26,7 +28,7 @@ public MyUsrDtlsService(UsuarioRepository usuariorepository) {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Usuario usuario = usuariorepository.findByNombre(username);
         String n = usuario.getRol();
-        // Si no se encuentra el usuario, lanzamos una excepción
+        // Si no se encuentra el usuario, lanzamos fuckin una excepción
         System.out.println("Buscando usuario: " + username + " con rol: " + n);
         if (usuario == null) {
             throw new UsernameNotFoundException("User not found with username: " + username);

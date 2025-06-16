@@ -12,7 +12,7 @@ import java.util.List;
 
 @Repository
 public interface DevolucionRepository extends JpaRepository<Devolucion, Integer> {
-    
+
     @Query("SELECT d FROM Devolucion d WHERE d.estado = :estado ORDER BY d.fecha DESC")
     List<Devolucion> findByEstado(@Param("estado") EstadoDevolucion estado);
 
@@ -27,8 +27,8 @@ public interface DevolucionRepository extends JpaRepository<Devolucion, Integer>
 
     @Query("SELECT d FROM Devolucion d WHERE d.estado = :estado AND d.fecha BETWEEN :fechaInicio AND :fechaFin ORDER BY d.fecha DESC")
     List<Devolucion> findByEstadoAndFechaBetween(
-        @Param("estado") EstadoDevolucion estado,
-        @Param("fechaInicio") Instant fechaInicio,
-        @Param("fechaFin") Instant fechaFin
+            @Param("estado") EstadoDevolucion estado,
+            @Param("fechaInicio") Instant fechaInicio,
+            @Param("fechaFin") Instant fechaFin
     );
 } 

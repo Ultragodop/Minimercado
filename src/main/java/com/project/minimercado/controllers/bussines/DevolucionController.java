@@ -34,8 +34,8 @@ public class DevolucionController {
 
     @PostMapping("/{id}/aprobar")
     public ResponseEntity<Devolucion> aprobarDevolucion(
-        @PathVariable Integer id,
-        @RequestBody Map<String, String> request
+            @PathVariable Integer id,
+            @RequestBody Map<String, String> request
     ) {
         try {
             String usuarioAprobacion = request.get("usuarioAprobacion");
@@ -49,8 +49,8 @@ public class DevolucionController {
 
     @PostMapping("/{id}/rechazar")
     public ResponseEntity<Devolucion> rechazarDevolucion(
-        @PathVariable Integer id,
-        @RequestBody Map<String, String> request
+            @PathVariable Integer id,
+            @RequestBody Map<String, String> request
     ) {
         try {
             String usuarioAprobacion = request.get("usuarioAprobacion");
@@ -70,8 +70,8 @@ public class DevolucionController {
 
     @GetMapping("/fecha")
     public ResponseEntity<List<Devolucion>> obtenerDevolucionesPorFecha(
-        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant fechaInicio,
-        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant fechaFin
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant fechaInicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant fechaFin
     ) {
         List<Devolucion> devoluciones = devolucionService.obtenerDevolucionesPorFecha(fechaInicio, fechaFin);
         return ResponseEntity.ok(devoluciones);
@@ -92,7 +92,7 @@ public class DevolucionController {
     @GetMapping("/{id}")
     public ResponseEntity<Devolucion> obtenerDevolucionPorId(@PathVariable Integer id) {
         return devolucionService.obtenerDevolucionPorId(id)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 } 

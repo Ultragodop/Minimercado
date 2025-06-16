@@ -20,6 +20,7 @@ public class SalaChatService {
 
 
     private final SalaChatRepository salaChatRepository;
+
     public SalaChatService(UsuarioRepository usuarioRepository, salaUsuarioRepository salausuariorepositorys, SalaChatRepository salaChatRepository) {
         this.usuarioRepository = usuarioRepository;
         this.salaChatRepository = salaChatRepository;
@@ -57,6 +58,7 @@ public class SalaChatService {
     public List<SalaChat> obtenerTodasLasSalas() {
         return salaChatRepository.findAll();
     }
+
     public Long obteneridporusuario(String nombre) {
         return usuarioRepository.getIdUsuario(nombre);
 

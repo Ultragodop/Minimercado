@@ -43,6 +43,8 @@ public class Venta {
     @OneToMany(mappedBy = "idVenta", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<DetalleVenta> detalleVentas = new LinkedHashSet<>();
 
+
     public void setIdUsuario(Usuario usuario) {
+
     }
 }

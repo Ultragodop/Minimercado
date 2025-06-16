@@ -1,11 +1,13 @@
 package com.project.minimercado.services.bussines;
 
-import com.project.minimercado.model.bussines.*;
+import com.project.minimercado.model.bussines.DetallePedidoProveedor;
+import com.project.minimercado.model.bussines.PedidosProveedor;
+import com.project.minimercado.model.bussines.Producto;
+import com.project.minimercado.model.bussines.Proveedores;
 import com.project.minimercado.repository.bussines.DetallePedidoProveedorRepository;
 import com.project.minimercado.repository.bussines.PedidosProveedorRepository;
 import com.project.minimercado.repository.bussines.ProductosRepository;
 import com.project.minimercado.repository.bussines.ProveedoresRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +31,8 @@ public class PedidosService {
 
 
     private final ProductosRepository productosRepository;
-public PedidosService(PedidosProveedorRepository pedidosRepository,
+
+    public PedidosService(PedidosProveedorRepository pedidosRepository,
                           DetallePedidoProveedorRepository detalleRepository,
                           ProveedoresRepository proveedoresRepository,
                           ProductosRepository productosRepository) {
@@ -38,6 +41,7 @@ public PedidosService(PedidosProveedorRepository pedidosRepository,
         this.proveedoresRepository = proveedoresRepository;
         this.productosRepository = productosRepository;
     }
+
     public List<PedidosProveedor> getAllPedidos() {
         return pedidosRepository.findAll();
     }
@@ -59,16 +63,16 @@ public PedidosService(PedidosProveedorRepository pedidosRepository,
         Optional<PedidosProveedor> pedidoExistente = pedidosRepository.findById(id);
         if (pedidoExistente.isPresent()) {
             PedidosProveedor pedido = pedidoExistente.get();
-            
+
             // Solo permitir actualizar ciertos campos
             pedido.setFechaEntrega(pedidoActualizado.getFechaEntrega());
             pedido.setEstado(pedidoActualizado.getEstado());
-            
+
             // Si el estado cambia a "entregado", actualizar el stock de productos
             if ("entregado".equals(pedidoActualizado.getEstado()) && !"entregado".equals(pedido.getEstado())) {
                 actualizarStockProductos(pedido);
             }
-            
+
             return pedidosRepository.save(pedido);
         }
         throw new RuntimeException("Pedido no encontrado con ID: " + id);
@@ -94,20 +98,20 @@ public PedidosService(PedidosProveedorRepository pedidosRepository,
         Optional<PedidosProveedor> pedidoOpt = pedidosRepository.findById(pedidoId);
         if (pedidoOpt.isPresent()) {
             PedidosProveedor pedido = pedidoOpt.get();
-            
+
             // Validar que el pedido no esté entregado
             if ("entregado".equals(pedido.getEstado())) {
                 throw new RuntimeException("No se pueden agregar detalles a un pedido ya entregado");
             }
-            
+
             // Validar el producto
             validateProducto(detalle.getIdProducto());
-            
+
             // Agregar el detalle al pedido
             detalle.setIdPedido(pedido);
             detalleRepository.save(detalle);
             pedido.getDetallePedidoProveedors().add(detalle);
-            
+
             return pedidosRepository.save(pedido);
         }
         throw new RuntimeException("Pedido no encontrado con ID: " + pedidoId);
@@ -117,18 +121,18 @@ public PedidosService(PedidosProveedorRepository pedidosRepository,
         if (pedido.getIdProveedor() == null) {
             throw new RuntimeException("El proveedor es requerido");
         }
-        
+
         // Validar que el proveedor exista
         if (!proveedoresRepository.existsById(pedido.getIdProveedor().getId())) {
             throw new RuntimeException("El proveedor no existe");
         }
-        
+
         // Validar los detalles del pedido
         Set<DetallePedidoProveedor> detalles = pedido.getDetallePedidoProveedors();
         if (detalles == null || detalles.isEmpty()) {
             throw new RuntimeException("El pedido debe tener al menos un detalle");
         }
-        
+
         for (DetallePedidoProveedor detalle : detalles) {
             validateDetallePedido(detalle);
         }
@@ -138,15 +142,15 @@ public PedidosService(PedidosProveedorRepository pedidosRepository,
         if (detalle.getIdProducto() == null) {
             throw new RuntimeException("El producto es requerido en el detalle");
         }
-        
+
         if (detalle.getCantidad() == null || detalle.getCantidad() <= 0) {
             throw new RuntimeException("La cantidad debe ser mayor a 0");
         }
-        
+
         if (detalle.getPrecioUnitario() == null || detalle.getPrecioUnitario().compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("El precio unitario debe ser mayor a 0");
         }
-        
+
         validateProducto(detalle.getIdProducto());
     }
 
@@ -154,7 +158,7 @@ public PedidosService(PedidosProveedorRepository pedidosRepository,
         if (producto == null || producto.getId() == null) {
             throw new RuntimeException("El producto es requerido");
         }
-        
+
         if (!productosRepository.existsById(producto.getId())) {
             throw new RuntimeException("El producto no existe");
         }

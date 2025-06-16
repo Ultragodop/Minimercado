@@ -23,13 +23,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 @Component
 @RequiredArgsConstructor
@@ -88,7 +82,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             Boolean isValid = validTokenCache.getIfPresent(jwt);
             if (Boolean.TRUE.equals(isValid)) {
                 // Extraigo username del JWT (sin lanzar más validaciones, pues ya está cacheado)
-                String username = jwtService.extractUsername(jwt);
+                String username = String.valueOf(jwtService.extractUsername(jwt));
                 if (username != null) {
                     // Busco UserDetails en caché o en el servicio
                     UserDetails userDetails = userDetailsCache.getIfPresent(username);

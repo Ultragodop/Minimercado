@@ -1,10 +1,12 @@
 package com.project.minimercado.services.bussines;
 
 import com.project.minimercado.model.bussines.*;
-import com.project.minimercado.repository.bussines.*;
+import com.project.minimercado.repository.bussines.DevolucionRepository;
+import com.project.minimercado.repository.bussines.ProductoRepository;
+import com.project.minimercado.repository.bussines.VentaRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -21,9 +23,9 @@ public class DevolucionService {
 
     @Autowired
     public DevolucionService(
-        DevolucionRepository devolucionRepository,
-        VentaRepository ventaRepository,
-        ProductoRepository productoRepository
+            DevolucionRepository devolucionRepository,
+            VentaRepository ventaRepository,
+            ProductoRepository productoRepository
     ) {
         this.devolucionRepository = devolucionRepository;
         this.ventaRepository = ventaRepository;
@@ -34,7 +36,7 @@ public class DevolucionService {
     public Devolucion crearDevolucion(Devolucion devolucion) {
         // Validar que la venta existe
         Venta venta = ventaRepository.findById(devolucion.getVenta().getId())
-            .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+                .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
 
         // Validar que la venta es en efectivo
         if (!"EFECTIVO".equalsIgnoreCase(venta.getTipoPago())) {
@@ -54,8 +56,8 @@ public class DevolucionService {
 
         // Calcular el total de la devolución
         BigDecimal total = devolucion.getDetallesDevolucion().stream()
-            .map(detalle -> detalle.getPrecioUnitario().multiply(new BigDecimal(detalle.getCantidad())))
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(detalle -> detalle.getPrecioUnitario().multiply(new BigDecimal(detalle.getCantidad())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         devolucion.setTotal(total);
         devolucion.setEstado(EstadoDevolucion.PENDIENTE);
@@ -67,7 +69,7 @@ public class DevolucionService {
     @Transactional
     public Devolucion aprobarDevolucion(Integer idDevolucion, String usuarioAprobacion, String comentario) {
         Devolucion devolucion = devolucionRepository.findById(idDevolucion)
-            .orElseThrow(() -> new RuntimeException("Devolución no encontrada"));
+                .orElseThrow(() -> new RuntimeException("Devolución no encontrada"));
 
         if (devolucion.getEstado() != EstadoDevolucion.PENDIENTE) {
             throw new RuntimeException("La devolución no está en estado pendiente");
@@ -76,7 +78,7 @@ public class DevolucionService {
         // Actualizar inventario (stock de productos)
         for (DetalleDevolucion detalle : devolucion.getDetallesDevolucion()) {
             Producto producto = productoRepository.findById(detalle.getProducto().getId())
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
             // Actualizar el stock del producto
             producto.setStockActual(producto.getStockActual() + detalle.getCantidad());
@@ -95,7 +97,7 @@ public class DevolucionService {
     @Transactional
     public Devolucion rechazarDevolucion(Integer idDevolucion, String usuarioAprobacion, String comentario) {
         Devolucion devolucion = devolucionRepository.findById(idDevolucion)
-            .orElseThrow(() -> new RuntimeException("Devolución no encontrada"));
+                .orElseThrow(() -> new RuntimeException("Devolución no encontrada"));
 
         if (devolucion.getEstado() != EstadoDevolucion.PENDIENTE) {
             throw new RuntimeException("La devolución no está en estado pendiente");

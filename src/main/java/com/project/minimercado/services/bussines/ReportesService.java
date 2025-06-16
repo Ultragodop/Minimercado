@@ -1,15 +1,20 @@
 package com.project.minimercado.services.bussines;
 
 import com.project.minimercado.model.bussines.*;
-import com.project.minimercado.repository.bussines.*;
+import com.project.minimercado.repository.bussines.AnalisisProductoRepository;
+import com.project.minimercado.repository.bussines.ProductosRepository;
+import com.project.minimercado.repository.bussines.ReporteVentasRepository;
+import com.project.minimercado.repository.bussines.VentaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,15 +39,23 @@ public class ReportesService {
     public ReporteVentas generarReporteDiarioVentas(LocalDate fecha) {
         Instant inicioDia = fecha.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant finDia = fecha.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
-        
+
         return generarReporteVentas(inicioDia, finDia, "DIARIO");
+    }
+
+    @Transactional(readOnly = true)
+    public ReporteVentas generarReporteSemanalVentas(LocalDate fechaInicio, LocalDate fechaFin) {
+        Instant inicioSemana = fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant();
+        Instant finSemana = fechaFin.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+        return generarReporteVentas(inicioSemana, finSemana, "SEMANA");
     }
 
     @Transactional(readOnly = true)
     public List<ReporteVentas> generarReportePeriodoVentas(LocalDate fechaInicio, LocalDate fechaFin) {
         Instant inicio = fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant fin = fechaFin.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
-        
+
         return reporteVentasRepository.findByPeriodo(inicio, fin);
     }
 
@@ -50,7 +63,7 @@ public class ReportesService {
     public Map<String, List<ReporteVentas>> generarReporteMetodoPago(LocalDate fechaInicio, LocalDate fechaFin) {
         Instant inicio = fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant fin = fechaFin.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
-        
+
         List<ReporteVentas> reportes = reporteVentasRepository.findByPeriodo(inicio, fin);
         return reportes.stream()
                 .collect(Collectors.groupingBy(ReporteVentas::getMetodoPago));
@@ -60,7 +73,7 @@ public class ReportesService {
     public List<AnalisisProducto> generarRankingProductos(LocalDate fechaInicio, LocalDate fechaFin) {
         Instant inicio = fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant fin = fechaFin.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
-        
+
         return analisisProductoRepository.findTopVendidos(inicio, fin);
     }
 
@@ -68,7 +81,7 @@ public class ReportesService {
     public List<AnalisisProducto> generarAnalisisRentabilidad(LocalDate fechaInicio, LocalDate fechaFin) {
         Instant inicio = fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant fin = fechaFin.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
-        
+
         return analisisProductoRepository.findTopRentables(inicio, fin);
     }
 
@@ -76,7 +89,7 @@ public class ReportesService {
     public List<AnalisisProducto> generarAnalisisRotacion(LocalDate fechaInicio, LocalDate fechaFin) {
         Instant inicio = fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant fin = fechaFin.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
-        
+
         return analisisProductoRepository.findTopRotacion(inicio, fin);
     }
 
@@ -95,10 +108,10 @@ public class ReportesService {
         BigDecimal totalVentas = ventas.stream()
                 .map(Venta::getTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        
+
         int cantidadTransacciones = ventas.size();
-        
-        BigDecimal ticketPromedio = cantidadTransacciones > 0 
+
+        BigDecimal ticketPromedio = cantidadTransacciones > 0
                 ? totalVentas.divide(BigDecimal.valueOf(cantidadTransacciones), 2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
@@ -127,9 +140,9 @@ public class ReportesService {
             reporteMetodo.setTotalVentas(totalMetodo);
             reporteMetodo.setCantidadTransacciones(ventasMetodo.size());
             reporteMetodo.setTicketPromedio(
-                ventasMetodo.size() > 0 
-                    ? totalMetodo.divide(BigDecimal.valueOf(ventasMetodo.size()), 2, RoundingMode.HALF_UP)
-                    : BigDecimal.ZERO
+                    !ventasMetodo.isEmpty()
+                            ? totalMetodo.divide(BigDecimal.valueOf(ventasMetodo.size()), 2, RoundingMode.HALF_UP)
+                            : BigDecimal.ZERO
             );
 
             reporteVentasRepository.save(reporteMetodo);
@@ -169,7 +182,7 @@ public class ReportesService {
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             BigDecimal margenGanancia = ingresos.subtract(
-                BigDecimal.valueOf(producto.getPrecioCompra() * unidadesVendidas)
+                    BigDecimal.valueOf(producto.getPrecioCompra() * unidadesVendidas)
             );
 
             int rotacion = unidadesVendidas / (producto.getStockActual() > 0 ? producto.getStockActual() : 1);

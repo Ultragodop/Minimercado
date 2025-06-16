@@ -3,14 +3,15 @@ package com.project.minimercado.model.bussines;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.math.BigDecimal;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "detalles_devolucion", schema = "minimercado", indexes = {
-    @Index(name = "idx_det_dev_devolucion", columnList = "id_devolucion"),
-    @Index(name = "idx_det_dev_producto", columnList = "id_producto")
+        @Index(name = "idx_det_dev_devolucion", columnList = "id_devolucion"),
+        @Index(name = "idx_det_dev_producto", columnList = "id_producto")
 })
 public class DetalleDevolucion {
     @Id

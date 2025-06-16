@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
-import java.math.BigDecimal;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -37,7 +36,7 @@ public class Producto {
     @Column(name = "precio_venta", nullable = false)
     private Double precioVenta;
 
-    @Column(name="fechaVencimiento",nullable = false)
+    @Column(name = "fechaVencimiento", nullable = false)
     private Date fechaVencimiento;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -18,8 +18,8 @@ public class InventarioService {
     private final ProveedorService proveedorService;
 
     public InventarioService(ProductosService productoService,
-                           CategoriaService categoriaService,
-                           ProveedorService proveedorService) {
+                             CategoriaService categoriaService,
+                             ProveedorService proveedorService) {
         this.productoService = productoService;
         this.categoriaService = categoriaService;
         this.proveedorService = proveedorService;
@@ -28,13 +28,13 @@ public class InventarioService {
     @Transactional(readOnly = true)
     public Map<String, Object> obtenerEstadoInventario() {
         Map<String, Object> estado = new HashMap<>();
-        
+
         // Obtener productos con stock bajo
         List<Producto> productosBajoStock = productoService.obtenerProductosBajoStock();
-        
+
         // Obtener todos los productos activos
         List<Producto> productosActivos = productoService.listarProductosActivos();
-        
+
         // Calcular valor total del inventario
         double valorTotalInventario = productosActivos.stream()
                 .mapToDouble(p -> p.getPrecioCompra() * p.getStockActual())
@@ -43,71 +43,71 @@ public class InventarioService {
         estado.put("productosBajoStock", productosBajoStock);
         estado.put("totalProductosActivos", productosActivos.size());
         estado.put("valorTotalInventario", valorTotalInventario);
-        
+
         return estado;
     }
 
     @Transactional(readOnly = true)
     public Map<String, Object> obtenerResumenPorCategoria() {
         Map<String, Object> resumen = new HashMap<>();
-        
+
         List<Categoria> categorias = categoriaService.listarCategorias();
-        
+
         for (Categoria categoria : categorias) {
             List<Producto> productosCategoria = productoService.buscarProductosPorCategoria(categoria);
-            
+
             Map<String, Object> infoCategoria = new HashMap<>();
             infoCategoria.put("totalProductos", productosCategoria.size());
-            
+
             double valorInventarioCategoria = productosCategoria.stream()
                     .mapToDouble(p -> p.getPrecioCompra() * p.getStockActual())
                     .sum();
-            
+
             infoCategoria.put("valorInventario", valorInventarioCategoria);
-            
+
             // Productos bajo stock en esta categoría
             long productosBajoStock = productosCategoria.stream()
                     .filter(p -> p.getStockActual() <= p.getStockMinimo())
                     .count();
-            
+
             infoCategoria.put("productosBajoStock", productosBajoStock);
-            
+
             resumen.put(categoria.getNombre(), infoCategoria);
         }
-        
+
         return resumen;
     }
 
     @Transactional(readOnly = true)
     public Map<String, Object> obtenerResumenPorProveedor() {
         Map<String, Object> resumen = new HashMap<>();
-        
+
         List<Proveedores> proveedores = proveedorService.listarProveedores();
-        
+
         for (Proveedores proveedor : proveedores) {
             Map<String, Object> infoProveedor = new HashMap<>();
-            
+
             // Obtener productos del proveedor
             List<Producto> productosProveedor = (List<Producto>) proveedor.getProducto().stream().toList();
-            
+
             infoProveedor.put("totalProductos", productosProveedor.size());
-            
+
             double valorInventarioProveedor = productosProveedor.stream()
                     .mapToDouble(p -> p.getPrecioCompra() * p.getStockActual())
                     .sum();
-            
+
             infoProveedor.put("valorInventario", valorInventarioProveedor);
-            
+
             // Productos bajo stock de este proveedor
             long productosBajoStock = productosProveedor.stream()
                     .filter(p -> p.getStockActual() <= p.getStockMinimo())
                     .count();
-            
+
             infoProveedor.put("productosBajoStock", productosBajoStock);
-            
+
             resumen.put(proveedor.getNombre(), infoProveedor);
         }
-        
+
         return resumen;
     }
 
@@ -129,38 +129,38 @@ public class InventarioService {
     @Transactional(readOnly = true)
     public Map<String, Object> obtenerEstadisticasInventario() {
         List<Producto> productos = productoService.listarProductosActivos();
-        
+
         Map<String, Object> estadisticas = new HashMap<>();
-        
+
         // Total de productos diferentes
         estadisticas.put("totalProductos", productos.size());
-        
+
         // Total de unidades en inventario
         int totalUnidades = productos.stream()
                 .mapToInt(Producto::getStockActual)
                 .sum();
         estadisticas.put("totalUnidades", totalUnidades);
-        
+
         // Valor total del inventario
         double valorTotal = productos.stream()
                 .mapToDouble(p -> p.getPrecioCompra() * p.getStockActual())
                 .sum();
         estadisticas.put("valorTotal", valorTotal);
-        
+
         // Productos bajo stock
         long productosBajoStock = productos.stream()
                 .filter(p -> p.getStockActual() <= p.getStockMinimo())
                 .count();
         estadisticas.put("productosBajoStock", productosBajoStock);
-        
+
         // Total de categorías
         long totalCategorias = categoriaService.listarCategorias().size();
         estadisticas.put("totalCategorias", totalCategorias);
-        
+
         // Total de proveedores
         long totalProveedores = proveedorService.listarProveedores().size();
         estadisticas.put("totalProveedores", totalProveedores);
-        
+
         return estadisticas;
     }
 
@@ -169,6 +169,7 @@ public class InventarioService {
     public Producto crearProducto(Producto producto) {
         return productoService.crearProducto(producto);
     }
+
     @Transactional
     public List<ProductoDTO> listarProductos() {
         return productoService.obtenerProductos();

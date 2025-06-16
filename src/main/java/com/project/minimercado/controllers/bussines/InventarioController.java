@@ -7,9 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/inventario")
@@ -71,7 +71,7 @@ public class InventarioController {
         }
     }
 
-    @PostMapping(value="/producto", consumes = "application/json", produces = "application/json")
+    @PostMapping(value = "/producto", consumes = "application/json", produces = "application/json")
     public ResponseEntity<Producto> agregarProducto(@RequestBody Producto producto) {
         try {
             return ResponseEntity.ok(inventarioService.crearProducto(producto));
@@ -125,6 +125,7 @@ public class InventarioController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
     @GetMapping("/todos-productos")
     public ResponseEntity<List<ProductoDTO>> obtenerTodosLosProductos() {
         try {

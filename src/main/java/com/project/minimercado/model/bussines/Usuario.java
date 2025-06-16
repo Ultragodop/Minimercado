@@ -49,5 +49,4 @@ public class Usuario {
     private Set<Venta> ventas = new LinkedHashSet<>();
 
 
-
 }

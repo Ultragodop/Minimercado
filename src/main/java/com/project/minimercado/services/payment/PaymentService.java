@@ -29,10 +29,10 @@ public class PaymentService {
             HttpEntity<PaymentRequest> entity = new HttpEntity<>(request, headers);
 
             ResponseEntity<PaymentResponse> response = restTemplate.exchange(
-                paymentConfig.getBaseUrl() + "/api/payments",
-                HttpMethod.POST,
-                entity,
-                PaymentResponse.class
+                    paymentConfig.getBaseUrl() + "/api/payments",
+                    HttpMethod.POST,
+                    entity,
+                    PaymentResponse.class
             );
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {

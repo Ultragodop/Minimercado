@@ -3,6 +3,7 @@ package com.project.minimercado.model.bussines;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 
@@ -10,8 +11,8 @@ import java.time.Instant;
 @Setter
 @Entity
 @Table(name = "tickets", schema = "minimercado", indexes = {
-    @Index(name = "idx_ticket_venta", columnList = "id_venta"),
-    @Index(name = "idx_ticket_fecha", columnList = "fecha")
+        @Index(name = "idx_ticket_venta", columnList = "id_venta"),
+        @Index(name = "idx_ticket_fecha", columnList = "fecha")
 })
 public class Ticket {
     @Id

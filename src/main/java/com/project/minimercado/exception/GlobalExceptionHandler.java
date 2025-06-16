@@ -16,14 +16,15 @@ import java.util.Map;
 @ControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
-    
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleException(Exception e) {
         log.error("Error no manejado", e);
         return ResponseEntity
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(Map.of("error", "Error interno del servidor"));
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Error interno del servidor"));
     }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<String> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
         // Verifica si la causa es que se esperaba JSON pero llegó texto plano
@@ -34,11 +35,11 @@ public class GlobalExceptionHandler {
         }
 
 
-
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body("Error en el formato de entrada: " + ex.getMessage());
     }
+
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<Map<String, Object>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
         Map<String, Object> error = new HashMap<>();
@@ -46,6 +47,7 @@ public class GlobalExceptionHandler {
         error.put("detalle", "Este endpoint no soporta el método " + ex.getMethod());
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(error);
     }
+
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<String> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
         return ResponseEntity
@@ -58,15 +60,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException e) {
         log.error("Error de validación", e);
         return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(Map.of("error", e.getMessage()));
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", e.getMessage()));
     }
 
     @ExceptionHandler(PaymentException.class)
     public ResponseEntity<Map<String, String>> handlePaymentException(PaymentException e) {
         log.error("Error en el procesamiento del pago", e);
         return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(Map.of("error", e.getMessage()));
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", e.getMessage()));
     }
 } 

@@ -8,7 +8,11 @@ import com.project.minimercado.services.auth.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 
 @RestController
 @RequestMapping("/api/auth")
@@ -19,7 +23,7 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @PostMapping(value ="/login", consumes = "application/json", produces = "application/json")
+    @PostMapping(value = "/login", consumes = "application/json", produces = "application/json")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         try {
             LoginResponse response = authService.login(loginRequest);
@@ -66,6 +70,21 @@ public class AuthController {
             return ResponseEntity.internalServerError()
                     .body(new RegisterResponse("error", "Error interno del servidor"));
 
+        }
+    }
+
+    @PostMapping(value = "/logout", produces = "application/json")
+    public ResponseEntity<String> logout(@Valid @RequestBody String token) {
+        try {
+            authService.logout(token);
+            return ResponseEntity.ok()
+                    .header("X-Content-Type-Options", "nosniff")
+                    .header("X-Frame-Options", "DENY")
+                    .header("X-XSS-Protection", "1; mode=block")
+                    .body("Logout successful");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body("Error interno del servidor");
         }
     }
 }

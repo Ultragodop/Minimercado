@@ -7,7 +7,6 @@ import com.project.minimercado.model.register.RegisterRequest;
 import com.project.minimercado.model.register.RegisterResponse;
 import com.project.minimercado.repository.bussines.UsuarioRepository;
 import com.project.minimercado.services.auth.JWT.JWTService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,11 +20,9 @@ import org.springframework.util.StringUtils;
 
 @Service
 public class AuthService {
-    private final BCryptPasswordEncoder encryptor = new BCryptPasswordEncoder(12);
     private static final int MIN_PASSWORD_LENGTH = 8;
     private static final String USERNAME_PATTERN = "^[a-zA-Z0-9_]{3,20}$";
-
-
+    private final BCryptPasswordEncoder encryptor = new BCryptPasswordEncoder(12);
     private final JWTService jwtService;
 
 
@@ -33,13 +30,15 @@ public class AuthService {
 
 
     private final UsuarioRepository usuarioRepository;
-public AuthService(JWTService jwtService, AuthenticationManager authManager, UsuarioRepository usuarioRepository) {
+
+    public AuthService(JWTService jwtService, AuthenticationManager authManager, UsuarioRepository usuarioRepository) {
         this.jwtService = jwtService;
         this.authManager = authManager;
         this.usuarioRepository = usuarioRepository;
     }
 
     @Transactional
+
     public LoginResponse login(LoginRequest loginRequest) {
         try {
             if (!isValidLoginRequest(loginRequest)) {
@@ -52,10 +51,10 @@ public AuthService(JWTService jwtService, AuthenticationManager authManager, Usu
             }
 
             Authentication authentication = authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                    loginRequest.getUsername(),
-                    loginRequest.getPassword()
-                )
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getUsername(),
+                            loginRequest.getPassword()
+                    )
             );
 
             if (authentication.isAuthenticated()) {
@@ -66,8 +65,8 @@ public AuthService(JWTService jwtService, AuthenticationManager authManager, Usu
                         .map(GrantedAuthority::getAuthority)
                         .orElse("ROLE_USER");
 
-                String token = jwtService.generateToken(loginRequest.getUsername(), role);
-
+                String token = jwtService.generateToken(userDetails.getUsername(), role).join();
+                System.out.println("Token generado: " + token);
                 return new LoginResponse("success", token);
             }
 
@@ -103,18 +102,26 @@ public AuthService(JWTService jwtService, AuthenticationManager authManager, Usu
         }
     }
 
+    public void logout(String token) {
+        if (token == null || token.isEmpty()) {
+            throw new IllegalArgumentException("Token no puede ser nulo o vacío");
+        }
+        jwtService.InvalidateToken(token);
+        System.out.println("Logout exitoso para el token");
+    }
+
     private boolean isValidLoginRequest(LoginRequest request) {
         return request != null &&
-               StringUtils.hasText(request.getUsername()) &&
-               StringUtils.hasText(request.getPassword()) &&
-               request.getPassword().length() >= MIN_PASSWORD_LENGTH;
+                StringUtils.hasText(request.getUsername()) &&
+                StringUtils.hasText(request.getPassword()) &&
+                request.getPassword().length() >= MIN_PASSWORD_LENGTH;
     }
 
     private boolean isValidRegisterRequest(RegisterRequest request) {
         return request != null &&
-               StringUtils.hasText(request.getUsername()) &&
-               request.getUsername().matches(USERNAME_PATTERN) &&
-               StringUtils.hasText(request.getPassword()) &&
-               request.getPassword().length() >= MIN_PASSWORD_LENGTH;
+                StringUtils.hasText(request.getUsername()) &&
+                request.getUsername().matches(USERNAME_PATTERN) &&
+                StringUtils.hasText(request.getPassword()) &&
+                request.getPassword().length() >= MIN_PASSWORD_LENGTH;
     }
 }

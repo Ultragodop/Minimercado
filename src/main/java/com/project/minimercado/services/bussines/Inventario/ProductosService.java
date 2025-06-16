@@ -22,11 +22,12 @@ public class ProductosService {
         validateproduct(producto);
         return productosRepository.save(producto);
     }
+
     public List<ProductoDTO> obtenerProductos() {
 
-       try {
-           return productosRepository.findAllProductoDTOs();
-       }catch (Exception e) {
+        try {
+            return productosRepository.findAllProductoDTOs();
+        } catch (Exception e) {
             throw new UnsupportedOperationException("No se puede obtener un producto");
 
         }
@@ -35,7 +36,7 @@ public class ProductosService {
     @Transactional
     public Producto actualizarProducto(Integer id, Producto productoActualizado) {
         Producto productoExistente = obtenerProductoPorId(id);
-        
+
         // Actualizar campos
         productoExistente.setNombre(productoActualizado.getNombre());
         productoExistente.setDescripcion(productoActualizado.getDescripcion());

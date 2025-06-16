@@ -1,9 +1,10 @@
 package com.project.minimercado.config;
+
 import com.project.minimercado.exception.ChatWebSocketHandler;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.web.socket.WebSocketHandler;
-import org.springframework.web.socket.config.annotation.*;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
 @Configuration
 @EnableWebSocket
@@ -11,7 +12,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         // Ahora maneja rutas como "/chat/general", "/chat/programadores", etc.
-        registry.addHandler(new ChatWebSocketHandler(), "/chat/*")
+        registry.addHandler(new ChatWebSocketHandler(), "/chat/**")
                 .setAllowedOrigins("*");
     }
 }

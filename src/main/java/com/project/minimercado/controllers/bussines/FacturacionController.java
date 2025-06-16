@@ -1,7 +1,7 @@
 package com.project.minimercado.controllers.bussines;
 
-import com.project.minimercado.model.bussines.Ticket;
 import com.project.minimercado.model.bussines.EstadoTicket;
+import com.project.minimercado.model.bussines.Ticket;
 import com.project.minimercado.services.bussines.FacturacionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;

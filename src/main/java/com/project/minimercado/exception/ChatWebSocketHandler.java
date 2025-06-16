@@ -24,7 +24,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
-    public void afterConnectionEstablished(@NotNull WebSocketSession session) throws Exception {
+    public void afterConnectionEstablished(@NotNull WebSocketSession session) {
 
         String path = Objects.requireNonNull(session.getUri()).getPath();
         // 2. El nombre de sala es todo lo que viene después de "/chat/"  toma pa vos los solucione
@@ -42,7 +42,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         ChatMessage chatMessage = mapper.readValue(message.getPayload(), ChatMessage.class);
 
         // 2. De nuevo, obtener la sala desde la URI de quien envió
-        String path = session.getUri().getPath();
+        String path = Objects.requireNonNull(session.getUri()).getPath();
         String sala = path.substring(path.lastIndexOf("/") + 1);
 
         // 3. Serializar el objeto ChatMessage a JSON
@@ -59,9 +59,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus status) throws Exception {
+    public void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus status) {
         // Cuando se cierra la sesión, hay que quitarla de la sala que corresponda
-        String path = session.getUri().getPath();
+        String path = Objects.requireNonNull(session.getUri()).getPath();
         String sala = path.substring(path.lastIndexOf("/") + 1);
 
         List<WebSocketSession> listaSala = salasSessions.get(sala);

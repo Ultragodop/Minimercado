@@ -18,8 +18,8 @@ public class GastosService {
     private final GastoRepository gastosRepository;
     private final TransaccionesRepository transaccionesRepository;
 
-    public GastosService(GastoRepository gastosRepository, 
-                        TransaccionesRepository transaccionesRepository) {
+    public GastosService(GastoRepository gastosRepository,
+                         TransaccionesRepository transaccionesRepository) {
         this.gastosRepository = gastosRepository;
         this.transaccionesRepository = transaccionesRepository;
     }
@@ -66,13 +66,13 @@ public class GastosService {
         gastosRepository.save(gastoExistente);
 
         // Actualizar el movimiento contable asociado
-        Optional<MovimientosContable> movimientoOptional = 
-            transaccionesRepository.findByReferencia("GASTO-" + id);
+        Optional<MovimientosContable> movimientoOptional =
+                transaccionesRepository.findByReferencia("GASTO-" + id);
 
         if (movimientoOptional.isPresent()) {
             MovimientosContable movimiento = movimientoOptional.get();
-            movimiento.setDescripcion("Gasto: " + gastoActualizado.getDescripcion() + 
-                                    " - Categoría: " + gastoActualizado.getCategoriaGasto());
+            movimiento.setDescripcion("Gasto: " + gastoActualizado.getDescripcion() +
+                    " - Categoría: " + gastoActualizado.getCategoriaGasto());
             movimiento.setMonto(gastoActualizado.getMonto());
             transaccionesRepository.save(movimiento);
         }
@@ -113,9 +113,9 @@ public class GastosService {
                 .orElseThrow(() -> new RuntimeException("Gasto no encontrado"));
 
         // Eliminar el movimiento contable asociado
-        Optional<MovimientosContable> movimiento = 
-            transaccionesRepository.findByReferencia("GASTO-" + id);
-        
+        Optional<MovimientosContable> movimiento =
+                transaccionesRepository.findByReferencia("GASTO-" + id);
+
         movimiento.ifPresent(transaccionesRepository::delete);
 
         // Eliminar el gasto
