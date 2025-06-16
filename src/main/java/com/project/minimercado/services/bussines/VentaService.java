@@ -23,6 +23,7 @@ import java.util.UUID;
 
 @Service
 public class VentaService {
+
     private final VentaRepository ventaRepository;
     private final ProductosRepository productoRepository;
     private final TransaccionesRepository transaccionesRepository;

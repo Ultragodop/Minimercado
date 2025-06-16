@@ -2,6 +2,7 @@ package com.project.minimercado.controllers.auth;
 
 import com.project.minimercado.model.login.LoginRequest;
 import com.project.minimercado.model.login.LoginResponse;
+import com.project.minimercado.model.login.Token;
 import com.project.minimercado.model.register.RegisterRequest;
 import com.project.minimercado.model.register.RegisterResponse;
 import com.project.minimercado.services.auth.AuthService;
@@ -18,9 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
+    private Token token2;
 
     public AuthController(AuthService authService) {
         this.authService = authService;
+
     }
 
     @PostMapping(value = "/login", consumes = "application/json", produces = "application/json")
@@ -73,18 +76,24 @@ public class AuthController {
         }
     }
 
-    @PostMapping(value = "/logout", produces = "application/json")
+    @PostMapping(value = "/logout", consumes = "application/json", produces = "application/json")
     public ResponseEntity<String> logout(@Valid @RequestBody String token) {
         try {
-            authService.logout(token);
-            return ResponseEntity.ok()
-                    .header("X-Content-Type-Options", "nosniff")
-                    .header("X-Frame-Options", "DENY")
-                    .header("X-XSS-Protection", "1; mode=block")
-                    .body("Logout successful");
+
+            String n= authService.logout(token);
+
+
+            if (n.equals("success")) {
+                return ResponseEntity.ok()
+                        .header("X-Content-Type-Options", "nosniff")
+                        .header("X-Frame-Options", "DENY")
+                        .header("X-XSS-Protection", "1; mode=block")
+                        .body("Logout success");
+            }
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
-                    .body("Error interno del servidor");
+                    .body("Internal server error");
+
         }
-    }
+return ResponseEntity.internalServerError().body("No se reconocio el error");    }
 }

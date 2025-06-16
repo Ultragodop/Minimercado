@@ -14,11 +14,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 @Service
 public class JWTService {
-    private final Map<String, String> tokeninhash = new HashMap<>();
+    private final Map<String, String> tokeninhash = new ConcurrentHashMap<>();
+
+
     //Esto es una mala practica ya que hardcodea la jwt secret key
     @Value("${jwt.secret}")
     private String secretKey;
@@ -44,20 +47,25 @@ public class JWTService {
         return claimsResolver.apply(claims);
     }
 
-    @Async
-    public CompletableFuture<String> generateToken(String username, String role) {
+
+    public String generateToken(String username, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
-        return createToken(claims, username)
-                .thenApply(token -> {
-                    // Guardás el token real (ya resuelto)
-                    tokeninhash.put(token, extractUsername(token));
-                    return token;
-                });
+
+        String token = createToken(claims, username); // Solo una vez
+        System.out.println(token);
+
+        tokeninhash.put(token, username);
+
+
+
+        return token; // Retornás el mismo que guardaste
     }
 
 
+
     public boolean validateToken(String token, UserDetails userDetails) {
+
         if (!tokeninhash.containsKey(token)) {
             throw new IllegalArgumentException("Token not found in the hash map");
 
@@ -90,9 +98,10 @@ public class JWTService {
         }
     }
 
-    @Async
-    protected CompletableFuture<String> createToken(Map<String, Object> claims, String subject) {
-        return CompletableFuture.completedFuture(Jwts.builder()
+
+    protected String createToken(Map<String, Object> claims, String subject) {
+        System.out.println(claims + subject);
+        return Jwts.builder()
                 .claims()
                 .add(claims)
                 .subject(subject)
@@ -100,7 +109,8 @@ public class JWTService {
                 .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .and()
                 .signWith(key)
-                .compact());
+                .compact();
+
     }
 
     private Date extractExpiration(String token) {
@@ -115,17 +125,28 @@ public class JWTService {
                 .getPayload();
     }
 
-    public void InvalidateToken(String token) {
-        if (token == null || token.isEmpty()) {
-            throw new IllegalArgumentException("Token cannot be null or empty");
+    public String InvalidateToken(String token) {
+        token = token.trim().replace("\"", "");
 
-        }
+        System.out.println("Invalidating token: [" + token + "]");
+        System.out.println("Hash: " + token.hashCode());
+
         if (!tokeninhash.containsKey(token)) {
-            throw new IllegalArgumentException("No encuentra el token en el hash map");
+            System.out.println("❌ Token no encontrado en el mapa");
+            return "error";
         }
 
         tokeninhash.remove(token);
-
-        throw new RuntimeException("Token invalidated successfully");
+        System.out.println("Token invalidado correctamente");
+        return "success";
     }
+
+    public void printTokenKeys() {
+        System.out.println("Claves en tokeninhash:");
+        for (String key : tokeninhash.keySet()) {
+            System.out.println("  🔑 " + key);
+            System.out.println("    Hash: " + key.hashCode());
+        }
+    }
+
 }

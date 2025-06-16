@@ -3,6 +3,7 @@ package com.project.minimercado.services.auth;
 import com.project.minimercado.model.bussines.Usuario;
 import com.project.minimercado.model.login.LoginRequest;
 import com.project.minimercado.model.login.LoginResponse;
+import com.project.minimercado.model.login.Token;
 import com.project.minimercado.model.register.RegisterRequest;
 import com.project.minimercado.model.register.RegisterResponse;
 import com.project.minimercado.repository.bussines.UsuarioRepository;
@@ -24,7 +25,7 @@ public class AuthService {
     private static final String USERNAME_PATTERN = "^[a-zA-Z0-9_]{3,20}$";
     private final BCryptPasswordEncoder encryptor = new BCryptPasswordEncoder(12);
     private final JWTService jwtService;
-
+    private Token token;
 
     private final AuthenticationManager authManager;
 
@@ -65,7 +66,8 @@ public class AuthService {
                         .map(GrantedAuthority::getAuthority)
                         .orElse("ROLE_USER");
 
-                String token = jwtService.generateToken(userDetails.getUsername(), role).join();
+                String token = jwtService.generateToken(userDetails.getUsername(), role);
+
                 System.out.println("Token generado: " + token);
                 return new LoginResponse("success", token);
             }
@@ -102,14 +104,21 @@ public class AuthService {
         }
     }
 
-    public void logout(String token) {
+    public String logout(String token) {
+        System.out.println(token);
         if (token == null || token.isEmpty()) {
             throw new IllegalArgumentException("Token no puede ser nulo o vacío");
         }
-        jwtService.InvalidateToken(token);
-        System.out.println("Logout exitoso para el token");
-    }
 
+
+        String m = jwtService.InvalidateToken(token);
+        if (m.equals("success")) {
+
+
+            return "success";
+        }
+        return "error";
+    }
     private boolean isValidLoginRequest(LoginRequest request) {
         return request != null &&
                 StringUtils.hasText(request.getUsername()) &&
