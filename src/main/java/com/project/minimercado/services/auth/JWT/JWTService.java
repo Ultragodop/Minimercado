@@ -5,7 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
+
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +13,7 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -51,15 +51,10 @@ public class JWTService {
     public String generateToken(String username, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
-
         String token = createToken(claims, username); // Solo una vez
         System.out.println(token);
-
         tokeninhash.put(token, username);
-
-
-
-        return token; // Retornás el mismo que guardaste
+        return token;
     }
 
 
@@ -70,6 +65,7 @@ public class JWTService {
             throw new IllegalArgumentException("Token not found in the hash map");
 
         }
+        System.out.println(" Token encontrado en el mapa");
         if (token == null || token.isEmpty()) {
             throw new IllegalArgumentException("Token cannot be null or empty");
         }
@@ -132,21 +128,22 @@ public class JWTService {
         System.out.println("Hash: " + token.hashCode());
 
         if (!tokeninhash.containsKey(token)) {
-            System.out.println("❌ Token no encontrado en el mapa");
+            System.out.println("Token no encontrado en el mapa");
             return "error";
         }
 
         tokeninhash.remove(token);
-        System.out.println("Token invalidado correctamente");
+        System.out.println("Token invalidado correctamente"+ tokeninhash);
         return "success";
     }
-
-    public void printTokenKeys() {
-        System.out.println("Claves en tokeninhash:");
-        for (String key : tokeninhash.keySet()) {
-            System.out.println("  🔑 " + key);
-            System.out.println("    Hash: " + key.hashCode());
+    public boolean isTokenStored(String token) {
+        // Evita NPE por si llaman con null
+        if (token == null || token.isEmpty()) {
+            return false;
         }
+        return tokeninhash.containsKey(token);
     }
+
+
 
 }

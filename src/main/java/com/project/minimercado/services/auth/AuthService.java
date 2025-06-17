@@ -109,16 +109,13 @@ public class AuthService {
         if (token == null || token.isEmpty()) {
             throw new IllegalArgumentException("Token no puede ser nulo o vacío");
         }
-
-
         String m = jwtService.InvalidateToken(token);
         if (m.equals("success")) {
-
-
             return "success";
         }
         return "error";
     }
+
     private boolean isValidLoginRequest(LoginRequest request) {
         return request != null &&
                 StringUtils.hasText(request.getUsername()) &&

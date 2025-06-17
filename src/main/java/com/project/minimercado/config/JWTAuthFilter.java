@@ -78,11 +78,16 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
             final String jwt = authHeader.substring(7);
 
-            // 2) Si está en caché como válido, resuelvo UserDetails y vuelvo a setear Authentication
-            Boolean isValid = validTokenCache.getIfPresent(jwt);
-            if (Boolean.TRUE.equals(isValid)) {
-                // Extraigo username del JWT (sin lanzar más validaciones, pues ya está cacheado)
-                String username = String.valueOf(jwtService.extractUsername(jwt));
+            // 2) Si el token sigue almacenado en JWTService, resuelvo UserDetails y seteo Authentication
+            if (!jwtService.isTokenStored(jwt)) {
+                sendError(response, "No se encontro token en el hashmap", HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+
+
+                if(jwtService.isTokenStored(jwt)){
+                // Extraigo username del JWT (sin lanzar más validaciones, pues ya está cacheado en JWTService)
+                String username = jwtService.extractUsername(jwt);
                 if (username != null) {
                     // Busco UserDetails en caché o en el servicio
                     UserDetails userDetails = userDetailsCache.getIfPresent(username);
@@ -96,6 +101,8 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 filterChain.doFilter(request, response);
                 return;
             }
+
+
 
             // Paso 3: Validación de estructura básica
             if (!jwtService.isValidTokenFormat(jwt)) {
