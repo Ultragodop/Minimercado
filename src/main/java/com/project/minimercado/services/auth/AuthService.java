@@ -1,9 +1,10 @@
 package com.project.minimercado.services.auth;
 
+
 import com.project.minimercado.model.bussines.Usuario;
 import com.project.minimercado.model.login.LoginRequest;
 import com.project.minimercado.model.login.LoginResponse;
-import com.project.minimercado.model.login.Token;
+
 import com.project.minimercado.model.register.RegisterRequest;
 import com.project.minimercado.model.register.RegisterResponse;
 import com.project.minimercado.repository.bussines.UsuarioRepository;
@@ -25,7 +26,7 @@ public class AuthService {
     private static final String USERNAME_PATTERN = "^[a-zA-Z0-9_]{3,20}$";
     private final BCryptPasswordEncoder encryptor = new BCryptPasswordEncoder(12);
     private final JWTService jwtService;
-    private Token token;
+
 
     private final AuthenticationManager authManager;
 
@@ -47,9 +48,12 @@ public class AuthService {
             }
 
             Usuario usuario = usuarioRepository.findByNombre(loginRequest.getUsername());
+
+
             if (usuario == null) {
                 return new LoginResponse("error", "Usuario no encontrado");
             }
+
 
             Authentication authentication = authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -68,15 +72,15 @@ public class AuthService {
 
                 String token = jwtService.generateToken(userDetails.getUsername(), role);
 
-                System.out.println("Token generado: " + token);
+
                 return new LoginResponse("success", token);
             }
 
-            return new LoginResponse("error", "Autenticación fallida");
+            return new LoginResponse("error","401", "Autenticación fallida");
         } catch (BadCredentialsException e) {
-            return new LoginResponse("error", "Credenciales inválidas");
+            return new LoginResponse("error","401", "Credenciales inválidas");
         } catch (Exception e) {
-            return new LoginResponse("error", "Error en el servidor: " + e.getMessage());
+            return new LoginResponse("error","500", "Error en el servidor: " + e.getMessage());
         }
     }
 
@@ -130,4 +134,6 @@ public class AuthService {
                 StringUtils.hasText(request.getPassword()) &&
                 request.getPassword().length() >= MIN_PASSWORD_LENGTH;
     }
+
+
 }

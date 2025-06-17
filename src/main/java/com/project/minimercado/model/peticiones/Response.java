@@ -9,10 +9,19 @@ import lombok.Setter;
 @NoArgsConstructor  // <-- necesario para puto Jackson de re mierda
 public class Response {
     private String status;
+    private String token;
     private String message;
-
-    public Response(String status, String message) {
+    private String httpError;
+    public Response(String status, String token) {
         this.status = status;
-        this.message = message;
+        this.token = token;
     }
+public Response(String status, String numero, String message) {
+        this.status = status;
+        this.httpError = numero;
+        this.message = message;
+
+
+}
+
 }

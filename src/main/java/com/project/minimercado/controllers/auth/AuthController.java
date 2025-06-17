@@ -1,43 +1,58 @@
 package com.project.minimercado.controllers.auth;
 
+import com.project.minimercado.dto.LoginResponseWithId;
+import com.project.minimercado.model.bussines.Usuario;
 import com.project.minimercado.model.login.LoginRequest;
 import com.project.minimercado.model.login.LoginResponse;
-import com.project.minimercado.model.login.Token;
+
+
 import com.project.minimercado.model.register.RegisterRequest;
 import com.project.minimercado.model.register.RegisterResponse;
+import com.project.minimercado.repository.bussines.UsuarioRepository;
 import com.project.minimercado.services.auth.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+
 
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    private final AuthService authService;
-    private Token token2;
 
-    public AuthController(AuthService authService) {
+    private final AuthService authService;
+    private final UsuarioRepository usuarioRepository;
+
+    public AuthController(AuthService authService, UsuarioRepository usuarioRepository) {
         this.authService = authService;
+        this.usuarioRepository=usuarioRepository;
 
     }
 
+
     @PostMapping(value = "/login", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
+
+
         try {
             LoginResponse response = authService.login(loginRequest);
+            Long id = usuarioRepository.getIdUsuario(loginRequest.getUsername());
+
             if ("success".equals(response.getStatus())) {
+                LoginResponseWithId result = new LoginResponseWithId(response, id);
+
                 return ResponseEntity.ok()
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + response.getMessage())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + response.getToken())
                         .header("X-Content-Type-Options", "nosniff")
                         .header("X-Frame-Options", "DENY")
                         .header("X-XSS-Protection", "1; mode=block")
-                        .body(response);
+                        .body(result);
             }
+
+
             return ResponseEntity.badRequest()
                     .header("X-Content-Type-Options", "nosniff")
                     .header("X-Frame-Options", "DENY")
@@ -80,7 +95,7 @@ public class AuthController {
     public ResponseEntity<String> logout(@Valid @RequestBody String token) {
         try {
 
-            String n= authService.logout(token);
+            String n = authService.logout(token);
 
 
             if (n.equals("success")) {
@@ -95,5 +110,24 @@ public class AuthController {
                     .body("Internal server error");
 
         }
-return ResponseEntity.internalServerError().body("No se reconocio el error");    }
+        return ResponseEntity.internalServerError().body("No se reconocio el error");
+    }
+
+    @GetMapping( "/Usuario/{IdUsuario}")
+    public ResponseEntity<?> getUsuario(@PathVariable Long IdUsuario) {
+        try {
+
+            Usuario usuario = usuarioRepository.getUsuarioById(IdUsuario);
+            if (usuario == null) {
+
+                return new ResponseEntity<>("Usuario no encontrado", HttpStatus.NOT_FOUND);
+            }
+                    return ResponseEntity.ok().body(usuario);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+
+        }
+    }
 }
+

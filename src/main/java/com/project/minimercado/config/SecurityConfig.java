@@ -1,7 +1,6 @@
 package com.project.minimercado.config;
 
 import com.project.minimercado.services.auth.MyUsrDtlsService;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,13 +40,17 @@ public class SecurityConfig {
 
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/logout").permitAll()
+                        .requestMatchers("api/auth/register").permitAll()
+                        .requestMatchers("/api/auth/Usuario/**").permitAll()
                         .requestMatchers("/api/inventario/**").hasAnyRole("ADMIN", "INVENTARIO")
                         .requestMatchers("/api/ventas/**").hasAnyRole("ADMIN", "VENTAS")
                         .requestMatchers("/api/facturacion/**").hasAnyRole("ADMIN", "VENTAS")
                         .requestMatchers("/api/categorias/**").hasAnyRole("ADMIN", "INVENTARIO")
                         .anyRequest().authenticated()
                 )
+
 
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
