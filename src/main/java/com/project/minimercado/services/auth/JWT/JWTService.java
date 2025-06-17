@@ -1,5 +1,7 @@
 package com.project.minimercado.services.auth.JWT;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -15,11 +17,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 @Service
 public class JWTService {
-    private final Map<String, String> tokeninhash = new ConcurrentHashMap<>();
+    Cache<String, Boolean> tokeninhash = Caffeine.newBuilder()
+            .expireAfterWrite(15, TimeUnit.MINUTES)
+            .maximumSize(1000)
+            .build();
+
 
 
     //Esto es una mala practica ya que hardcodea la jwt secret key
@@ -53,16 +60,16 @@ public class JWTService {
         claims.put("role", role);
         String token = createToken(claims, username); // Solo una vez
         System.out.println(token);
-        tokeninhash.put(token, username);
+        tokeninhash.put(token, true);
         return token;
     }
 
 
 
     public boolean validateToken(String token, UserDetails userDetails) {
-
-        if (!tokeninhash.containsKey(token)) {
-            throw new IllegalArgumentException("Token not found in the hash map");
+        Boolean isValid = tokeninhash.getIfPresent(token);
+        if (Boolean.FALSE.equals(isValid) || isValid == null) {
+            throw new IllegalArgumentException("No se encontró el token en el cache o el token es inválido");
 
         }
         System.out.println(" Token encontrado en el mapa");
@@ -124,16 +131,16 @@ public class JWTService {
     public String InvalidateToken(String token) {
         token = token.trim().replace("\"", "");
 
-        System.out.println("Invalidating token: [" + token + "]");
+        System.out.println("Invalidando token: [" + token + "]");
         System.out.println("Hash: " + token.hashCode());
 
-        if (!tokeninhash.containsKey(token)) {
+        if (token.isEmpty()) {
             System.out.println("Token no encontrado en el mapa");
             return "error";
         }
 
-        tokeninhash.remove(token);
-        System.out.println("Token invalidado correctamente"+ tokeninhash);
+        tokeninhash.put(token, false);
+        System.out.println("Token invalidado correctamente");
         return "success";
     }
     public boolean isTokenStored(String token) {
@@ -141,7 +148,8 @@ public class JWTService {
         if (token == null || token.isEmpty()) {
             return false;
         }
-        return tokeninhash.containsKey(token);
+        // devuelve false si el booleano en el fuckin token es false
+        return tokeninhash.get(token, k -> false);
     }
 
 

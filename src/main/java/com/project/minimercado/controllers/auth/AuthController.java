@@ -1,6 +1,4 @@
 package com.project.minimercado.controllers.auth;
-
-import com.project.minimercado.dto.LoginResponseWithId;
 import com.project.minimercado.model.bussines.Usuario;
 import com.project.minimercado.model.login.LoginRequest;
 import com.project.minimercado.model.login.LoginResponse;
@@ -39,17 +37,17 @@ public class AuthController {
 
         try {
             LoginResponse response = authService.login(loginRequest);
-            Long id = usuarioRepository.getIdUsuario(loginRequest.getUsername());
+
 
             if ("success".equals(response.getStatus())) {
-                LoginResponseWithId result = new LoginResponseWithId(response, id);
+
 
                 return ResponseEntity.ok()
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + response.getToken())
                         .header("X-Content-Type-Options", "nosniff")
                         .header("X-Frame-Options", "DENY")
                         .header("X-XSS-Protection", "1; mode=block")
-                        .body(result);
+                        .body(response);
             }
 
 
@@ -60,7 +58,7 @@ public class AuthController {
                     .body(response);
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
-                    .body(new LoginResponse("error", "Error interno del servidor"));
+                    .body(new LoginResponse("error", "500", "Error interno del servidor"));
         }
     }
 
@@ -105,12 +103,19 @@ public class AuthController {
                         .header("X-XSS-Protection", "1; mode=block")
                         .body("Logout success");
             }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .header("X-Content-Type-Options", "nosniff")
+                    .header("X-Frame-Options", "DENY")
+                    .header("X-XSS-Protection", "1; mode=block")
+                    .body("Logout fallido: Token inválido o no encontrado");
         } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                    .body("Internal server error");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .header("X-Content-Type-Options", "nosniff")
+                    .header("X-Frame-Options", "DENY")
+                    .header("X-XSS-Protection", "1; mode=block")
+                    .body("Error interno del servidor");
 
         }
-        return ResponseEntity.internalServerError().body("No se reconocio el error");
     }
 
     @GetMapping( "/Usuario/{IdUsuario}")

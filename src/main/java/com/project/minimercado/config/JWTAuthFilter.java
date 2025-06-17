@@ -73,17 +73,23 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
             // Paso 1: Verificación rápida de header
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                sendError(response, "El header tiene que venir con el token malparido", HttpServletResponse.SC_UNAUTHORIZED);
                 filterChain.doFilter(request, response);
                 return;
             }
 
             final String jwt = authHeader.substring(7);
 
-            // 2) Si el token sigue almacenado en JWTService, resuelvo UserDetails y seteo Authentication
-            if (!jwtService.isTokenStored(jwt)) {
-                sendError(response, "No se encontro token en el hashmap", HttpServletResponse.SC_UNAUTHORIZED);
+            if(jwt.isBlank()) {
+                sendError(response, "El header no puede estar vacio", HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
+            // 2) Si el token sigue almacenado en JWTService, resuelvo UserDetails y seteo Authentication
+            if (!jwtService.isTokenStored(jwt)) {
+                sendError(response, "Token invalidado o no existe", HttpServletResponse.SC_FORBIDDEN);
+                return;
+            }
+
 
 
                 if(jwtService.isTokenStored(jwt)){

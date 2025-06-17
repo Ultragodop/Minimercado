@@ -44,14 +44,14 @@ public class AuthService {
     public LoginResponse login(LoginRequest loginRequest) {
         try {
             if (!isValidLoginRequest(loginRequest)) {
-                return new LoginResponse("error", "Parámetros inválidos");
+                return new LoginResponse("error","422" ,"Parámetros inválidos");
             }
 
             Usuario usuario = usuarioRepository.findByNombre(loginRequest.getUsername());
 
 
             if (usuario == null) {
-                return new LoginResponse("error", "Usuario no encontrado");
+                return new LoginResponse("error","403", "Usuario no encontrado");
             }
 
 
@@ -71,9 +71,9 @@ public class AuthService {
                         .orElse("ROLE_USER");
 
                 String token = jwtService.generateToken(userDetails.getUsername(), role);
+                Long id = usuarioRepository.getIdUsuario(loginRequest.getUsername());
 
-
-                return new LoginResponse("success", token);
+                return new LoginResponse("success", token, id);
             }
 
             return new LoginResponse("error","401", "Autenticación fallida");
