@@ -1,7 +1,7 @@
 package com.project.minimercado.controllers.chat;
 
 
-import com.project.minimercado.model.bussines.Usuario;
+/**import com.project.minimercado.model.bussines.Usuario;
 import com.project.minimercado.model.chat.SalaChat;
 import com.project.minimercado.model.chat.SalaUsuario;
 import com.project.minimercado.repository.bussines.UsuarioRepository;
@@ -70,3 +70,4 @@ public class ChatRoomController {
         return ResponseEntity.ok(Map.of("roomName", roomName));
     }
 }
+**/

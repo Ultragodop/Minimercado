@@ -42,6 +42,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
         // 2) Obtener el usuario logueado
         String username = Objects.requireNonNull(session.getPrincipal()).getName();
+        assert usuarioRepo != null;
         Optional<Usuario> usuarioOpt = Optional.ofNullable(usuarioRepo.findByNombre(username));
         if (usuarioOpt.isEmpty()) {
             // No existe el usuario en BD: cerramos conexión
@@ -60,6 +61,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         SalaChat sala = salaOpt.get();
 
         // 4) Verificar que exista la relación usuario↔sala
+        assert salaUsuarioRepo != null;
         boolean autorizado = salaUsuarioRepo.existsBySalaAndUsuario(sala, usuario);
         if (!autorizado) {
             session.close(CloseStatus.POLICY_VIOLATION.withReason("No autorizado para esta sala"));

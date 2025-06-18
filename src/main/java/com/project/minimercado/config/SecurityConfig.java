@@ -41,13 +41,19 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/v3/**").permitAll()
                         .requestMatchers("/api/auth/logout").permitAll()
+                        .requestMatchers("/api/salas/crear").permitAll()
+                        .requestMatchers("/api/salas/todas").permitAll()
+                        .requestMatchers("/api/salas/userid").permitAll()
                         .requestMatchers("api/auth/register").permitAll()
                         .requestMatchers("/api/auth/Usuario/**").hasAnyRole("ADMIN", "USUARIO")
                         .requestMatchers("/api/inventario/**").hasAnyRole("ADMIN", "INVENTARIO")
                         .requestMatchers("/api/ventas/**").hasAnyRole("ADMIN", "VENTAS")
                         .requestMatchers("/api/facturacion/**").hasAnyRole("ADMIN", "VENTAS")
                         .requestMatchers("/api/categorias/**").hasAnyRole("ADMIN", "INVENTARIO")
+
                         .anyRequest().authenticated()
                 )
 
