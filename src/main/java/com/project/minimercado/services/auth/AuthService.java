@@ -10,6 +10,7 @@ import com.project.minimercado.model.register.RegisterRequest;
 import com.project.minimercado.model.register.RegisterResponse;
 import com.project.minimercado.repository.bussines.UsuarioRepository;
 import com.project.minimercado.services.auth.JWT.JWTService;
+import com.project.minimercado.utils.UserDetailsWithId;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -47,12 +48,6 @@ public class AuthService {
                 return new LoginResponse("error","422" ,"Parámetros inválidos");
             }
 
-            UsuarioDTO usuario = usuarioRepository.findId(loginRequest.getUsername());
-
-
-            if (usuario == null) {
-                return new LoginResponse("error","403", "Usuario no encontrado");
-            }
 
 
             Authentication authentication = authManager.authenticate(
@@ -63,7 +58,7 @@ public class AuthService {
             );
 
             if (authentication.isAuthenticated()) {
-                UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+                UserDetailsWithId userDetails = (UserDetailsWithId) authentication.getPrincipal();
                 System.out.println(userDetails.getAuthorities());
                 String role = userDetails.getAuthorities().stream()
                         .findFirst()
@@ -73,7 +68,7 @@ public class AuthService {
 
 
 
-                return new LoginResponse("success", jwtService.generateToken(userDetails.getUsername(),role), usuario.getId());
+                return new LoginResponse("success", jwtService.generateToken(userDetails.getUsername(),role), userDetails.getId());
             }
 
             return new LoginResponse("error","401", "Autenticación fallida");

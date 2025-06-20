@@ -3,15 +3,15 @@ package com.project.minimercado.services.auth;
 import com.project.minimercado.model.bussines.Usuario;
 import com.project.minimercado.model.login.UserPrincipal;
 import com.project.minimercado.repository.bussines.UsuarioRepository;
+import com.project.minimercado.utils.UserDetailsServiceWithId;
+import com.project.minimercado.utils.UserDetailsWithId;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 
 @Service
-public class MyUsrDtlsService implements UserDetailsService {
+public class MyUsrDtlsService implements UserDetailsServiceWithId {
 
     private final UsuarioRepository usuariorepository;
 
@@ -25,7 +25,7 @@ public class MyUsrDtlsService implements UserDetailsService {
      * */
     @Override
     @Cacheable(value = "userDetails", key = "#username")
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetailsWithId loadUserByUsername(String username) throws UsernameNotFoundException {
         Usuario usuario = usuariorepository.findByNombre(username);
         String n = usuario.getRol();
         // Si no se encuentra el usuario, lanzamos fuckin una excepción

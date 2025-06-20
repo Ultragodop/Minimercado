@@ -1,6 +1,7 @@
 package com.project.minimercado.config;
 
 import com.project.minimercado.services.auth.MyUsrDtlsService;
+import com.project.minimercado.utils.DaoAuthenticationProviderWithId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -124,7 +125,7 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        DaoAuthenticationProviderWithId authProvider = new DaoAuthenticationProviderWithId();
 
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
