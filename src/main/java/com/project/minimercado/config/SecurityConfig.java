@@ -78,7 +78,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Lista explícita de orígenes permitidos (sin el valor "null")
+
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:[0-9]+",
                 "http://127.0.0.1:[0-9]+",

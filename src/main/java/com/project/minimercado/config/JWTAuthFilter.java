@@ -36,7 +36,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
     @PostConstruct
     public void init() {
-        // Configurar cachés usando Caffeine
+
         validTokenCache = Caffeine.newBuilder()
                 .expireAfterWrite(15, TimeUnit.MINUTES)
                 .maximumSize(1000)
@@ -47,7 +47,6 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 .maximumSize(500)
                 .build();
 
-        // Configurar thread pool para operaciones async
         authExecutor = Executors.newWorkStealingPool(8);
     }
 
@@ -59,6 +58,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 path.startsWith("/public/") ||
                 path.contains("swagger") ||
                 path.contains("api-docs");
+
     }
 
     @Override
@@ -153,11 +153,10 @@ public class JWTAuthFilter extends OncePerRequestFilter {
     private CompletableFuture<UserDetails> loadUserDetailsAsync(String username) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                // Primero intentar obtener de caché
+
                 UserDetails cached = userDetailsCache.getIfPresent(username);
                 if (cached != null) return cached;
 
-                // Si no está en caché, cargar desde servicio
                 UserDetails details = userDetailsService.loadUserByUsername(username);
                 userDetailsCache.put(username, details);
                 return details;

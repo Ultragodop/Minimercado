@@ -52,6 +52,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         Usuario usuario = usuarioOpt.get();
 
         // 3) Buscar la sala en BD
+        assert salaChatRepo != null;
         Optional<SalaChat> salaOpt = salaChatRepo.findByNombre(salaNombre);
         if (salaOpt.isEmpty()) {
             // La sala no existe: cerramos conexión
@@ -76,17 +77,16 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(@NotNull WebSocketSession session, @NotNull TextMessage message) throws Exception {
-        // 1. Parsear el JSON entrante a ChatMessage
+
         ChatMessage chatMessage = mapper.readValue(message.getPayload(), ChatMessage.class);
 
-        // 2. De nuevo, obtener la sala desde la URI de quien envió
+
         String path = Objects.requireNonNull(session.getUri()).getPath();
         String sala = path.substring(path.lastIndexOf("/") + 1);
 
-        // 3. Serializar el objeto ChatMessage a JSON
+
         String jsonMessage = mapper.writeValueAsString(chatMessage);
 
-        // 4. Enviar únicamente a las sesiones que estén en esta misma sala
         List<WebSocketSession> listaSala = salasSessions.getOrDefault(sala, new CopyOnWriteArrayList<>());
         for (WebSocketSession s : listaSala) {
             if (s.isOpen()) {
@@ -98,14 +98,14 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus status) {
-        // Cuando se cierra la sesión, hay que quitarla de la sala que corresponda
+
         String path = Objects.requireNonNull(session.getUri()).getPath();
         String sala = path.substring(path.lastIndexOf("/") + 1);
 
         List<WebSocketSession> listaSala = salasSessions.get(sala);
         if (listaSala != null) {
             listaSala.remove(session);
-            // Si la sala queda vacía, podés opcionalmente eliminar la clave:
+
             if (listaSala.isEmpty()) {
                 salasSessions.remove(sala);
             }

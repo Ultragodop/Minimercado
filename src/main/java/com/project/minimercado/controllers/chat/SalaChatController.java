@@ -28,8 +28,7 @@ public class SalaChatController {
 
     @GetMapping("/todas")
     public ResponseEntity<List<String>> listarSalas() {
-        // Obtenemos todas las salas (entidades) y devolvemos solo sus nombres
-        List<SalaChat> salas = salaChatService.obtenerTodasLasSalas();
+          List<SalaChat> salas = salaChatService.obtenerTodasLasSalas();
         List<String> nombres = salas.stream()
                 .map(SalaChat::getNombre)
                 .collect(Collectors.toList());
