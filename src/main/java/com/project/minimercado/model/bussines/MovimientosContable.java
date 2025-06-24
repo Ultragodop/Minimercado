@@ -1,11 +1,13 @@
 package com.project.minimercado.model.bussines;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -20,6 +22,7 @@ public class MovimientosContable {
     private Integer id;
 
     @Column(name = "fecha", nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "America/Montevideo")
     private Instant fecha;
 
     @Lob

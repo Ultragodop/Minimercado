@@ -15,8 +15,6 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -144,14 +142,13 @@ public class JWTService {
         return "success";
     }
     public boolean isTokenStored(String token) {
-        // Evita NPE por si llaman con null
+
         if (token == null || token.isEmpty()) {
             return false;
         }
         // devuelve false si el booleano en el fuckin token es false
         return tokeninhash.get(token, k -> false);
     }
-
 
 
 }

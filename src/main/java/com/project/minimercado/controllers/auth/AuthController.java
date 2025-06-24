@@ -103,7 +103,7 @@ public class AuthController {
                         .header("X-XSS-Protection", "1; mode=block")
                         .body("Logout success");
             }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .header("X-Content-Type-Options", "nosniff")
                     .header("X-Frame-Options", "DENY")
                     .header("X-XSS-Protection", "1; mode=block")

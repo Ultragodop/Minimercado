@@ -6,20 +6,14 @@ import com.project.minimercado.dto.payment.Client;
 import com.project.minimercado.dto.payment.PaymentRequest;
 import com.project.minimercado.dto.payment.Product;
 import com.project.minimercado.model.bussines.*;
-import com.project.minimercado.repository.bussines.DetalleVentaRepository;
-import com.project.minimercado.repository.bussines.ProductosRepository;
-import com.project.minimercado.repository.bussines.TransaccionesRepository;
-import com.project.minimercado.repository.bussines.VentaRepository;
+import com.project.minimercado.repository.bussines.*;
 import com.project.minimercado.services.payment.PaymentService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class VentaService {
@@ -29,50 +23,52 @@ public class VentaService {
     private final TransaccionesRepository transaccionesRepository;
     private final PaymentService paymentService;
     private final PaymentConfig paymentConfig;
+    private final UsuarioRepository usuarioRepository;
 
     public VentaService(VentaRepository ventaRepository,
                         ProductosRepository productoRepository,
                         TransaccionesRepository transaccionesRepository,
                         DetalleVentaRepository detalleVentaRepository,
                         PaymentService paymentService,
-                        PaymentConfig paymentConfig) {
+                        PaymentConfig paymentConfig, UsuarioRepository usuarioRepository) {
         this.ventaRepository = ventaRepository;
         this.productoRepository = productoRepository;
         this.transaccionesRepository = transaccionesRepository;
         this.paymentService = paymentService;
         this.paymentConfig = paymentConfig;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @Transactional
-    public Venta realizarVentaEfectivo(Usuario usuario, List<DetalleVentaTemp> detallesVenta) {
-        // Validaciones iniciales
-        if (usuario == null) {
+    public Venta realizarVentaEfectivo(Usuario idUsuario, List<DetalleVentaTemp> detallesVenta) {
+
+        if (idUsuario == null) {
             throw new RuntimeException("El usuario es requerido para realizar la venta");
         }
         if (detallesVenta == null || detallesVenta.isEmpty()) {
             throw new RuntimeException("No hay productos en la venta");
         }
 
-        // Crear la venta
         Venta venta = new Venta();
         venta.setFecha(Instant.now());
-        venta.setIdUsuario(usuario);
+        venta.setIdUsuario(idUsuario);
         venta.setTipoPago("EFECTIVO");
+        venta.setEstado("PENDIENTE_PAGO");
+
         BigDecimal totalVenta = BigDecimal.ZERO;
 
-        // Procesar cada detalle de venta
         Set<DetalleVenta> detalles = venta.getDetalleVentas();
 
         for (DetalleVentaTemp det : detallesVenta) {
             Producto producto = productoRepository.findById(det.getIdProducto())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + det.getIdProducto()));
 
-            // Validar stock
+
             if (producto.getStockActual() < det.getCantidad()) {
                 throw new RuntimeException("Stock insuficiente para el producto: " + producto.getNombre());
             }
 
-            // Crear detalle de venta
+      
             DetalleVenta detalle = new DetalleVenta();
             detalle.setIdProducto(producto);
             detalle.setIdVenta(venta);
@@ -80,44 +76,40 @@ public class VentaService {
             detalle.setPrecioUnitario(BigDecimal.valueOf(producto.getPrecioVenta()));
             detalle.setSubtotal(detalle.getPrecioUnitario().multiply(BigDecimal.valueOf(det.getCantidad())));
 
-            // Actualizar stock
             producto.setStockActual(producto.getStockActual() - det.getCantidad());
             productoRepository.save(producto);
 
-            // Agregar al total
+
             totalVenta = totalVenta.add(detalle.getSubtotal());
             detalles.add(detalle);
         }
 
-        // Establecer el total de la venta
         venta.setTotal(totalVenta);
+        venta.setEstado("COMPLETADA");
 
-        // Guardar la venta
         venta = ventaRepository.save(venta);
 
-        // Registrar el movimiento contable
+
         registrarMovimientoContable(venta);
 
         return venta;
     }
 
     @Transactional
-    public String realizarVentaTarjeta(Usuario usuario, List<DetalleVentaTemp> detallesVenta) {
-        // Validaciones iniciales
-        validarVenta(usuario, detallesVenta);
-        validarPermisosUsuario(usuario);
+    public String realizarVentaTarjeta(Usuario idusuario, List<DetalleVentaTemp> detallesVenta) {
 
-        // Crear la venta
-        Venta venta = crearVentaInicial(usuario);
+        validarVenta(idusuario, detallesVenta);
+        validarPermisosUsuario(idusuario);
+
+
+        Venta venta = crearVentaInicial(idusuario);
         venta.setEstado("PENDIENTE_PAGO");
         BigDecimal totalVenta = BigDecimal.ZERO;
         List<Product> paymentProducts = new ArrayList<>();
 
-        // Procesar detalles de venta
         for (DetalleVentaTemp det : detallesVenta) {
             Producto producto = obtenerYValidarProducto(det.getIdProducto());
 
-            // Validar stock antes de crear la venta
             if (producto.getStockActual() < det.getCantidad()) {
                 throw new IllegalArgumentException("Stock insuficiente para el producto: " + producto.getNombre());
             }
@@ -128,19 +120,17 @@ public class VentaService {
             paymentProducts.add(crearProductoPago(detalle));
         }
 
-        // Configurar venta
         venta.setTotal(totalVenta);
 
         try {
-            // Crear y enviar solicitud de pago
+
             String paymentUrl = crearSolicitudPago(venta, paymentProducts, totalVenta);
 
-            // Guardar venta
             ventaRepository.save(venta);
 
             return paymentUrl;
         } catch (Exception e) {
-            // Si hay error en el proceso de pago, la transacción se revierte automáticamente
+
             throw new RuntimeException("Error al procesar el pago: " + e.getMessage(), e);
         }
     }
@@ -161,6 +151,7 @@ public class VentaService {
     }
 
     private Venta crearVentaInicial(Usuario usuario) {
+        usuario.setId(usuario.getId());
         Venta venta = new Venta();
         venta.setFecha(Instant.now());
         venta.setIdUsuario(usuario);
@@ -218,7 +209,6 @@ public class VentaService {
         paymentRequest.setClient(client);
         paymentRequest.setCallbackUrl(paymentConfig.getCallbackUrl());
 
-        // Guardar el transactionId en la venta
         venta.setTransactionExternalId(transactionId);
 
         return paymentService.createPayment(paymentRequest);
@@ -229,7 +219,7 @@ public class VentaService {
         Venta venta = ventaRepository.findByTransactionExternalId(transactionExternalId)
                 .orElseThrow(() -> new IllegalArgumentException("Venta no encontrada"));
 
-        if (status == 1) { // Success
+        if (status == 1) {
             procesarVentaExitosa(venta);
         } else {
             venta.setEstado("RECHAZADA");
@@ -238,7 +228,7 @@ public class VentaService {
     }
 
     private void procesarVentaExitosa(Venta venta) {
-        // Actualizar stock
+
         for (DetalleVenta detalle : venta.getDetalleVentas()) {
             Producto producto = detalle.getIdProducto();
             producto.setStockActual(producto.getStockActual() - detalle.getCantidad());
@@ -268,7 +258,6 @@ public class VentaService {
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
     }
 
-    // Clase auxiliar para manejar los detalles de venta temporales
     public static class DetalleVentaTemp {
         private Integer idProducto;
         private Integer cantidad;

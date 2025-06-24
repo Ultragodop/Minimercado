@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,7 +45,7 @@ public class DevolucionService {
         }
 
         // Validar que la venta no tiene más de 24 horas
-        long horasTranscurridas = ChronoUnit.HOURS.between(venta.getFecha(), Instant.now());
+        long horasTranscurridas = ChronoUnit.HOURS.between((Temporal) venta.getFecha(), Instant.now());
         if (horasTranscurridas > 24) {
             throw new RuntimeException("No se pueden realizar devoluciones de ventas con más de 24 horas de antigüedad");
         }

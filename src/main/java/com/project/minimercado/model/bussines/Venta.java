@@ -1,11 +1,13 @@
 package com.project.minimercado.model.bussines;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -22,13 +24,14 @@ public class Venta {
     private Integer id;
 
     @Column(name = "fecha", nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "America/Montevideo")
     private Instant fecha;
 
     @Column(name = "total", nullable = false, precision = 12, scale = 2)
     private BigDecimal total;
     @ManyToOne
     @JoinColumn(name = "id_usuario", nullable = false)
-    private Usuario usuario;
+    private Usuario idUsuario;
 
     @Lob
     @Column(name = "tipo_pago", nullable = false)
@@ -45,6 +48,6 @@ public class Venta {
 
 
     public void setIdUsuario(Usuario usuario) {
-
+    this.idUsuario = usuario;
     }
 }

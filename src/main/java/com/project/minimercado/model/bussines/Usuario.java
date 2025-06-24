@@ -44,7 +44,7 @@ public class Usuario {
     @JsonIgnore
     private List<SalaUsuario> salasUsuario = new ArrayList<>();
 
-    @OneToMany(mappedBy = "usuario")
+    @OneToMany(mappedBy = "idUsuario")
     @JsonIgnore
     private Set<Venta> ventas = new LinkedHashSet<>();
 

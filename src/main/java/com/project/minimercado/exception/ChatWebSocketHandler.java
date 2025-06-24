@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
-@NoArgsConstructor(force = true)
+@AllArgsConstructor
 public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final SalaChatRepository salaChatRepo;
     private final salaUsuarioRepository salaUsuarioRepo;
@@ -37,64 +37,44 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        String path = Objects.requireNonNull(session.getUri()).getPath();            // "/chat/user_10_42"
-        String salaNombre = path.substring(path.lastIndexOf("/") + 1);
+        // Obtenemos el username guardado en el interceptor
+        String username = (String) session.getAttributes().get("username");
+        if (username == null) {
+            // No autorizado, cerramos la conexión
+            session.close(CloseStatus.NOT_ACCEPTABLE.withReason("No autorizado: usuario no encontrado"));
+            return;
+        }
 
-        // 2) Obtener el usuario logueado
-        String username = Objects.requireNonNull(session.getPrincipal()).getName();
-        assert usuarioRepo != null;
+        // Usamos username para buscar el usuario en BD
         Optional<Usuario> usuarioOpt = Optional.ofNullable(usuarioRepo.findByNombre(username));
         if (usuarioOpt.isEmpty()) {
-            // No existe el usuario en BD: cerramos conexión
-            session.close(CloseStatus.POLICY_VIOLATION.withReason("Usuario no encontrado: " + username));
+            session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Usuario no encontrado"));
             return;
         }
         Usuario usuario = usuarioOpt.get();
 
-        // 3) Buscar la sala en BD
-        assert salaChatRepo != null;
+        // El resto de tu lógica para buscar la sala y validar
+        String path = Objects.requireNonNull(session.getUri()).getPath();
+        String salaNombre = path.substring(path.lastIndexOf("/") + 1);
+
         Optional<SalaChat> salaOpt = salaChatRepo.findByNombre(salaNombre);
         if (salaOpt.isEmpty()) {
-            // La sala no existe: cerramos conexión
-            session.close(CloseStatus.POLICY_VIOLATION.withReason("Sala no existe: " + salaNombre));
+            session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Sala no existe"));
             return;
         }
         SalaChat sala = salaOpt.get();
 
-        // 4) Verificar que exista la relación usuario↔sala
-        assert salaUsuarioRepo != null;
         boolean autorizado = salaUsuarioRepo.existsBySalaAndUsuario(sala, usuario);
         if (!autorizado) {
-            session.close(CloseStatus.POLICY_VIOLATION.withReason("No autorizado para esta sala"));
+            session.close(CloseStatus.NOT_ACCEPTABLE.withReason("No autorizado para esta sala"));
             return;
         }
 
-        // 5) Está todo OK: añado sesión a la sala
-        salasSessions
-                .computeIfAbsent(salaNombre, s -> new CopyOnWriteArrayList<>())
-                .add(session);
+        // Si pasa todo, añadimos la sesión
+        salasSessions.computeIfAbsent(salaNombre, s -> new CopyOnWriteArrayList<>()).add(session);
     }
 
-    @Override
-    protected void handleTextMessage(@NotNull WebSocketSession session, @NotNull TextMessage message) throws Exception {
 
-        ChatMessage chatMessage = mapper.readValue(message.getPayload(), ChatMessage.class);
-
-
-        String path = Objects.requireNonNull(session.getUri()).getPath();
-        String sala = path.substring(path.lastIndexOf("/") + 1);
-
-
-        String jsonMessage = mapper.writeValueAsString(chatMessage);
-
-        List<WebSocketSession> listaSala = salasSessions.getOrDefault(sala, new CopyOnWriteArrayList<>());
-        for (WebSocketSession s : listaSala) {
-            if (s.isOpen()) {
-                s.sendMessage(new TextMessage(jsonMessage));
-
-            }
-        }
-    }
 
     @Override
     public void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus status) {

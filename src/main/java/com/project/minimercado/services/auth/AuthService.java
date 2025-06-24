@@ -123,8 +123,7 @@ public class AuthService {
     private boolean isValidLoginRequest(LoginRequest request) {
         return request != null &&
                 StringUtils.hasText(request.getUsername()) &&
-                StringUtils.hasText(request.getPassword()) &&
-                request.getPassword().length() >= MIN_PASSWORD_LENGTH;
+                StringUtils.hasText(request.getPassword());
     }
 
     private boolean isValidRegisterRequest(RegisterRequest request) {
