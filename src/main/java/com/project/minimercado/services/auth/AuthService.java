@@ -40,7 +40,6 @@ public class AuthService {
     }
 
     @Transactional
-
     public LoginResponse login(LoginRequest loginRequest) {
         try {
             if (!isValidLoginRequest(loginRequest)) {
@@ -110,6 +109,7 @@ public class AuthService {
 
     public String logout(String token) {
         System.out.println(token);
+
         if (token == null || token.isEmpty()) {
             throw new IllegalArgumentException("Token no puede ser nulo o vacío");
         }

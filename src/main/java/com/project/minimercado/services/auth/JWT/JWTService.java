@@ -35,6 +35,10 @@ public class JWTService {
 
     private SecretKey key;
 
+    private static Boolean apply(String k) {
+        return false;
+    }
+
     @PostConstruct
     public void init() {
         if (secretKey == null || secretKey.length() < 32) {

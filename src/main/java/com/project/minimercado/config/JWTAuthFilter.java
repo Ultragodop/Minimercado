@@ -56,8 +56,10 @@ public class JWTAuthFilter extends OncePerRequestFilter {
         return path.startsWith("/api/auth/") ||
                 path.startsWith("/api/public/") ||
                 path.startsWith("/public/") ||
+                path.startsWith("/chat/") ||
                 path.contains("swagger") ||
                 path.contains("api-docs");
+
 
     }
 
@@ -95,6 +97,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 if(jwtService.isTokenStored(jwt)){
                 // Extraigo username del JWT (sin lanzar más validaciones, pues ya está cacheado en JWTService)
                 String username = jwtService.extractUsername(jwt);
+                System.out.println("Username extraído del JWT: " + username);
                 if (username != null) {
                     // Busco UserDetails en caché o en el servicio
                     UserDetails userDetails = userDetailsCache.getIfPresent(username);

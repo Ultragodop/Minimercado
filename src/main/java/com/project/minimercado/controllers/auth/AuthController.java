@@ -93,10 +93,10 @@ public class AuthController {
     public ResponseEntity<String> logout(@Valid @RequestBody String token) {
         try {
 
-            String n = authService.logout(token);
+            String response = authService.logout(token);
 
 
-            if (n.equals("success")) {
+            if (response.equals("success")) {
                 return ResponseEntity.ok()
                         .header("X-Content-Type-Options", "nosniff")
                         .header("X-Frame-Options", "DENY")
