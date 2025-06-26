@@ -200,9 +200,7 @@ public abstract class AbstractUserDetailsAuthenticationProviderWithId
         return result;
     }
 
-    @SuppressWarnings("deprecation")
-    protected abstract void additionalAuthenticationChecks(UserDetails userDetails,
-                                                           UsernamePasswordAuthenticationToken authentication) throws AuthenticationException;
+
 
     protected void doAfterPropertiesSet() throws Exception {
     }

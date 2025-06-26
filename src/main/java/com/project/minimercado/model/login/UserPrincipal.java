@@ -11,7 +11,7 @@ import java.util.List;
 
 /*
  * Esta clase va a proveerle el usuario a Spring Security
- *
+ * Modificada por Santiago Garcia 2025 para que acepte ids de usuario
  * */
 
 public class UserPrincipal implements UserDetailsWithId {

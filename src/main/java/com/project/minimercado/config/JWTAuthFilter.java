@@ -3,6 +3,8 @@ package com.project.minimercado.config;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.project.minimercado.services.auth.JWT.JWTService;
+import com.project.minimercado.utils.UserDetailsServiceWithId;
+import com.project.minimercado.utils.UserDetailsWithId;
 import io.jsonwebtoken.JwtException;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -15,8 +17,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -29,9 +29,9 @@ import java.util.concurrent.*;
 @RequiredArgsConstructor
 public class JWTAuthFilter extends OncePerRequestFilter {
     private final JWTService jwtService;
-    private final UserDetailsService userDetailsService;
+    private final UserDetailsServiceWithId userDetailsService;
     private Cache<String, Boolean> validTokenCache;
-    private Cache<String, UserDetails> userDetailsCache;
+    private Cache<String, UserDetailsWithId> userDetailsCache;
     private ExecutorService authExecutor;
 
     @PostConstruct
@@ -100,7 +100,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 System.out.println("Username extraído del JWT: " + username);
                 if (username != null) {
                     // Busco UserDetails en caché o en el servicio
-                    UserDetails userDetails = userDetailsCache.getIfPresent(username);
+                    UserDetailsWithId userDetails = userDetailsCache.getIfPresent(username);
                     if (userDetails == null) {
                         userDetails = userDetailsService.loadUserByUsername(username);
                         userDetailsCache.put(username, userDetails);
@@ -128,7 +128,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             }
             long start = System.currentTimeMillis();
             // Paso 5: Carga async con caché y timeout
-            UserDetails userDetails = loadUserDetailsAsync(username).get(2000, TimeUnit.MILLISECONDS);
+            UserDetailsWithId userDetails = loadUserDetailsAsync(username).get(2000, TimeUnit.MILLISECONDS);
 
             long duration = System.currentTimeMillis() - start;
             System.out.println("Tiempo carga UserDetails para " + username + ": " + duration + " ms");
@@ -153,14 +153,14 @@ public class JWTAuthFilter extends OncePerRequestFilter {
         }
     }
 
-    private CompletableFuture<UserDetails> loadUserDetailsAsync(String username) {
+    private CompletableFuture<UserDetailsWithId> loadUserDetailsAsync(String username) {
         return CompletableFuture.supplyAsync(() -> {
             try {
 
-                UserDetails cached = userDetailsCache.getIfPresent(username);
+                UserDetailsWithId cached = userDetailsCache.getIfPresent(username);
                 if (cached != null) return cached;
 
-                UserDetails details = userDetailsService.loadUserByUsername(username);
+                UserDetailsWithId details = userDetailsService.loadUserByUsername(username);
                 userDetailsCache.put(username, details);
                 return details;
             } catch (UsernameNotFoundException e) {
@@ -169,7 +169,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
         }, authExecutor);
     }
 
-    private void setAuthentication(UserDetails userDetails, HttpServletRequest request) {
+    private void setAuthentication(UserDetailsWithId userDetails, HttpServletRequest request) {
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                 userDetails,
                 null,

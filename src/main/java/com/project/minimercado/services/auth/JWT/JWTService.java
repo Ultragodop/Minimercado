@@ -2,6 +2,7 @@ package com.project.minimercado.services.auth.JWT;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.project.minimercado.utils.UserDetailsWithId;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -67,7 +68,7 @@ public class JWTService {
 
 
 
-    public boolean validateToken(String token, UserDetails userDetails) {
+    public boolean validateToken(String token, UserDetailsWithId userDetails) {
         Boolean isValid = tokeninhash.getIfPresent(token);
         if (Boolean.FALSE.equals(isValid) || isValid == null) {
             throw new IllegalArgumentException("No se encontró el token en el cache o el token es inválido");

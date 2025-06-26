@@ -73,9 +73,9 @@ public class DaoAuthenticationProviderWithId extends AbstractUserDetailsAuthenti
         setPasswordEncoder(passwordEncoder);
     }
 
-    @SuppressWarnings("deprecation")
+
     @Override
-    protected void additionalAuthenticationChecks(UserDetails userDetails,
+    protected void additionalAuthenticationChecks(UserDetailsWithId userDetails,
                                                   UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
         if (authentication.getCredentials() == null) {
             this.logger.debug("Failed to authenticate since no credentials provided");
@@ -131,6 +131,8 @@ public class DaoAuthenticationProviderWithId extends AbstractUserDetailsAuthenti
         }
         return super.createSuccessAuthentication(principal, authentication, user);
     }
+
+
 
     private void prepareTimingAttackProtection() {
         if (this.userNotFoundEncodedPassword == null) {
