@@ -1,16 +1,20 @@
 package com.project.minimercado.services.chat;
 
 import com.project.minimercado.services.auth.JWT.JWTService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 
@@ -26,7 +30,10 @@ public class Jwt implements HandshakeInterceptor {
 
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, @NotNull ServerHttpResponse response,
-                                   @NotNull WebSocketHandler wsHandler, @NotNull Map<String, Object> attributes) {
+                                   @NotNull WebSocketHandler wsHandler, @NotNull Map<String, Object> attributes) throws IOException {
+
+        ServletServerHttpResponse servletResp = (ServletServerHttpResponse) response ;
+        HttpServletResponse resp = servletResp.getServletResponse();
         URI uri = request.getURI();
         String query = uri.getQuery();
         logger.info("JWT query: " + query);
@@ -44,14 +51,14 @@ public class Jwt implements HandshakeInterceptor {
 
         if (token == null || token.isEmpty()) {
             logger.warn("Token no proporcionado en la solicitud WebSocket");
-            response.setStatusCode(HttpStatus.UNAUTHORIZED);
 
-            return false;
+
+            resp.sendError((HttpStatus.UNAUTHORIZED.value()), "Token no proporcionado");
         }
 
         if (!jwtService.isValidTokenFormat(token) && !jwtService.isTokenStored(token)) {
             logger.warn("Token no valido en la solicitud WebSocket");
-            response.setStatusCode(HttpStatus.UNAUTHORIZED);
+            resp.sendError(HttpStatus.UNAUTHORIZED.value(), "Token no válido o no almacenado");
 
             return false;
         }

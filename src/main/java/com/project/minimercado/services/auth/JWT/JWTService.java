@@ -20,8 +20,9 @@ import java.util.function.Function;
 
 @Service
 public class JWTService {
+
     Cache<String, Boolean> tokeninhash = Caffeine.newBuilder()
-            .expireAfterWrite(15, TimeUnit.MINUTES)
+            .expireAfterWrite(15, TimeUnit.SECONDS)
             .maximumSize(1000)
             .build();
 
@@ -35,9 +36,7 @@ public class JWTService {
 
     private SecretKey key;
 
-    private static Boolean apply(String k) {
-        return false;
-    }
+
 
     @PostConstruct
     public void init() {

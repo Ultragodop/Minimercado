@@ -19,10 +19,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -33,26 +30,23 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final SalaChatRepository salaChatRepo;
     private final salaUsuarioRepository salaUsuarioRepo;
     private final UsuarioRepository usuarioRepo;
-    // Mapa de “nombreDeSala → sesiones en esa sala”
-    private final Map<String, CopyOnWriteArrayList<WebSocketSession>> salasSessions = new ConcurrentHashMap<>();
+
+    private final Map<String, Set<WebSocketSession>> salasSessions = new ConcurrentHashMap<>();
 
     private final ObjectMapper mapper = new ObjectMapper();
 
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        // Obtenemos el username guardado en el interceptor
         String username = (String) session.getAttributes().get("username");
         if (username == null) {
             logger.warn("No se encontró el username en la sesión WebSocket");
-            // No autorizado, cerramos la conexión
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("No autorizado: usuario no encontrado"));
-
             return;
         }
         logger.info("Conexión WebSocket establecida para usuario: {}", username);
 
-        // Usamos username para buscar el usuario en BD
+        // Validación de usuario en BD
         Optional<Usuario> usuarioOpt = Optional.ofNullable(usuarioRepo.findByNombre(username));
         if (usuarioOpt.isEmpty()) {
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Usuario no encontrado"));
@@ -62,8 +56,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         Usuario usuario = usuarioOpt.get();
         logger.info("Usuario encontrado: {}", usuario.getNombre());
 
+        // Extracción y validación de sala
         String path = Objects.requireNonNull(session.getUri()).getPath();
-        if (path == null || !path.startsWith("/chat/")) {
+        if (!path.startsWith("/chat/")) {
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Ruta no válida"));
             return;
         }
@@ -83,26 +78,76 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        // Si pasa todo, añadimos la sesión
-        salasSessions.computeIfAbsent(salaNombre, s -> new CopyOnWriteArrayList<>()).add(session);
-    }
+        // Añade la sesión a la sala (Set previene duplicados)
+        Set<WebSocketSession> sesiones =
+                salasSessions.computeIfAbsent(salaNombre, key -> ConcurrentHashMap.newKeySet());
 
+        if (sesiones.add(session)) {
+            logger.info("Sesión añadida a la sala {}: {}", salaNombre, session.getId());
+        } else {
+            logger.info("Sesión {} ya estaba registrada en la sala {}", session.getId(), salaNombre);
+        }
+
+
+        if (sesiones.add(session)) {
+            logger.info("Sesión añadida a la sala {}: {}", salaNombre, session.getId());
+        } else {
+            logger.info("Sesión {} ya estaba registrada en la sala {}", session.getId(), salaNombre);
+        }
+
+}
+
+
+    @Override
+    protected void handleTextMessage(@NotNull WebSocketSession session, @NotNull TextMessage message) throws Exception {
+        // 1) Deserializas tu objeto de mensaje
+        ChatMessage chatMessage = mapper.readValue(message.getPayload(), ChatMessage.class);
+
+        // 2) Extraes el nombre de la sala de la URI
+        String path = Objects.requireNonNull(session.getUri()).getPath();
+        String sala = path.substring(path.lastIndexOf("/") + 1);
+
+        // 3) Serializas de nuevo a JSON el payload que vas a enviar
+        String jsonMessage = mapper.writeValueAsString(chatMessage);
+
+        // 4) Obtienes el Set de sesiones; si no existe, usas un Set vacío
+        Set<WebSocketSession> sesiones =
+                salasSessions.getOrDefault(sala, Collections.emptySet());
+
+        // 5) Iteras y envías, limpiando sesiones cerradas
+        Iterator<WebSocketSession> it = sesiones.iterator();
+        while (it.hasNext()) {
+            WebSocketSession s = it.next();
+            if (s.isOpen()) {
+                s.sendMessage(new TextMessage(jsonMessage));
+            } else {
+                // Remueve sesiones muertas para mantener limpio el Set
+                it.remove();
+            }
+        }
+    }
 
 
     @Override
     public void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus status) {
         logger.warn("Conexión WebSocket cerrada: {}, estado: {}", session.getId(), status);
-        
+
         String path = Objects.requireNonNull(session.getUri()).getPath();
         String sala = path.substring(path.lastIndexOf("/") + 1);
 
-        List<WebSocketSession> listaSala = salasSessions.get(sala);
-        if (listaSala != null) {
-            listaSala.remove(session);
 
-            if (listaSala.isEmpty()) {
+        Set<WebSocketSession> sesiones = salasSessions.get(sala);
+        if (sesiones != null) {
+            // Removemos la sesión cerrada
+            sesiones.remove(session);
+
+            // Si ya no quedan sesiones, eliminamos la entrada en el mapa
+            if (sesiones.isEmpty()) {
                 salasSessions.remove(sala);
+                logger.info("Sala '{}' vacía, eliminada del registro.", sala);
             }
         }
     }
+
 }
+
