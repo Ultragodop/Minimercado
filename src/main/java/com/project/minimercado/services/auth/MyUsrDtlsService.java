@@ -31,7 +31,7 @@ public class MyUsrDtlsService implements UserDetailsService {
         // Si no se encuentra el usuario, lanzamos fuckin una excepción
         System.out.println("Buscando usuario: " + username + " con rol: " + n);
         if (usuario == null) {
-            throw new UsernameNotFoundException("User not found with username: " + username);
+            throw new UsernameNotFoundException("Nombre no encontrado: " + username);
         }
         return new UserPrincipal(usuario);
     }

@@ -33,6 +33,10 @@ public class UserPrincipal implements UserDetails {
         return usuario.getPasswordHash();
     }
 
+    public Long getId(){
+        return usuario.getId();
+    }
+
     @Override
     public String getUsername() {
         return usuario.getNombre();

@@ -1,6 +1,7 @@
 package com.project.minimercado.services.auth;
 
 
+import com.project.minimercado.dto.UsuarioDTO;
 import com.project.minimercado.model.bussines.Usuario;
 import com.project.minimercado.model.login.LoginRequest;
 import com.project.minimercado.model.login.LoginResponse;
@@ -46,7 +47,7 @@ public class AuthService {
                 return new LoginResponse("error","422" ,"Parámetros inválidos");
             }
 
-            Usuario usuario = usuarioRepository.findByNombre(loginRequest.getUsername());
+            UsuarioDTO usuario = usuarioRepository.findId(loginRequest.getUsername());
 
 
             if (usuario == null) {
@@ -69,10 +70,10 @@ public class AuthService {
                         .map(GrantedAuthority::getAuthority)
                         .orElse("ROLE_USER");
 
-                String token = jwtService.generateToken(userDetails.getUsername(), role);
-                Long id = usuarioRepository.getIdUsuario(loginRequest.getUsername());
 
-                return new LoginResponse("success", token, id);
+
+
+                return new LoginResponse("success", jwtService.generateToken(userDetails.getUsername(),role), usuario.getId());
             }
 
             return new LoginResponse("error","401", "Autenticación fallida");

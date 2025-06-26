@@ -22,7 +22,7 @@ import java.util.function.Function;
 public class JWTService {
 
     Cache<String, Boolean> tokeninhash = Caffeine.newBuilder()
-            .expireAfterWrite(15, TimeUnit.SECONDS)
+            .expireAfterWrite(15, TimeUnit.MINUTES)
             .maximumSize(1000)
             .build();
 
