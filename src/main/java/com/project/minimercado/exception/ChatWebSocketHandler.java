@@ -5,11 +5,11 @@ import com.project.minimercado.dto.chat.ChatMessage;
 import com.project.minimercado.model.bussines.Usuario;
 import com.project.minimercado.model.chat.SalaChat;
 import com.project.minimercado.repository.bussines.UsuarioRepository;
+import com.project.minimercado.repository.chat.ChatMessageRepository;
 import com.project.minimercado.repository.chat.SalaChatRepository;
 import com.project.minimercado.repository.chat.salaUsuarioRepository;
-import com.project.minimercado.services.chat.Jwt;
+
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +19,9 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
 @AllArgsConstructor
@@ -30,7 +30,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final SalaChatRepository salaChatRepo;
     private final salaUsuarioRepository salaUsuarioRepo;
     private final UsuarioRepository usuarioRepo;
-
+    private final ChatMessageRepository chatMessageRepository;
+    private final Timestamp timestamp= new Timestamp(System.currentTimeMillis());
     private final Map<String, Set<WebSocketSession>> salasSessions = new ConcurrentHashMap<>();
 
     private final ObjectMapper mapper = new ObjectMapper();
@@ -89,19 +90,23 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
 
 
-        if (sesiones.add(session)) {
-            logger.info("Sesión añadida a la sala {}: {}", salaNombre, session.getId());
-        } else {
-            logger.info("Sesión {} ya estaba registrada en la sala {}", session.getId(), salaNombre);
-        }
+
 
 }
 
 
     @Override
     protected void handleTextMessage(@NotNull WebSocketSession session, @NotNull TextMessage message) throws Exception {
+
         // 1) Deserializas tu objeto de mensaje
         ChatMessage chatMessage = mapper.readValue(message.getPayload(), ChatMessage.class);
+        logger.info("Mensaje recibido: {}", chatMessage);
+
+
+
+
+
+
 
         // 2) Extraes el nombre de la sala de la URI
         String path = Objects.requireNonNull(session.getUri()).getPath();
@@ -125,6 +130,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 it.remove();
             }
         }
+        chatMessageRepository.insert(chatMessage.getUsuario(), chatMessage.getMensaje(), timestamp );
     }
 
 
