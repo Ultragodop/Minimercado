@@ -1,5 +1,6 @@
 package com.project.minimercado.config;
 
+
 import com.project.minimercado.services.auth.MyUsrDtlsService;
 import com.project.minimercado.utils.DaoAuthenticationProviderWithId;
 import lombok.RequiredArgsConstructor;
@@ -7,7 +8,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -41,6 +41,7 @@ public class SecurityConfig {
 
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
+
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/v3/**").permitAll()
@@ -56,8 +57,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/categorias/**").hasAnyRole("ADMIN", "INVENTARIO")
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/chat/**").permitAll()
+
                         .anyRequest().authenticated()
                 )
+
 
 
                 .sessionManagement(session -> session
@@ -132,6 +135,7 @@ public class SecurityConfig {
 
         return authProvider;
     }
+
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {

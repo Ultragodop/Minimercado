@@ -32,7 +32,7 @@ public class AuthController {
 
 
     @PostMapping(value = "/login", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
 
 
         try {
@@ -51,7 +51,7 @@ public class AuthController {
             }
 
 
-            return ResponseEntity.badRequest()
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .header("X-Content-Type-Options", "nosniff")
                     .header("X-Frame-Options", "DENY")
                     .header("X-XSS-Protection", "1; mode=block")
@@ -68,7 +68,7 @@ public class AuthController {
             RegisterResponse response = authService.register(registerRequest);
 
             if ("success".equals(response.getStatus())) {
-                return ResponseEntity.ok()
+                return ResponseEntity.status(200)
                         .header("X-Content-Type-Options", "nosniff")
                         .header("X-Frame-Options", "DENY")
                         .header("X-XSS-Protection", "1; mode=block")
@@ -76,14 +76,14 @@ public class AuthController {
 
             }
 
-            return ResponseEntity.badRequest()
+            return ResponseEntity.status(401)
                     .header("X-Content-Type-Options", "nosniff")
                     .header("X-Frame-Options", "DENY")
                     .header("X-XSS-Protection", "1; mode=block")
                     .body(response);
         } catch (Exception e) {
 
-            return ResponseEntity.internalServerError()
+            return ResponseEntity.status(500)
                     .body(new RegisterResponse("error", "Error interno del servidor"));
 
         }
@@ -119,13 +119,13 @@ public class AuthController {
     }
 
     @GetMapping( "/Usuario/{IdUsuario}")
-    public ResponseEntity<?> getUsuario(@PathVariable Long IdUsuario) {
+    public ResponseEntity<Usuario> getUsuario(@PathVariable Long IdUsuario) {
         try {
 
             Usuario usuario = usuarioRepository.getUsuarioById(IdUsuario);
             if (usuario == null) {
 
-                return new ResponseEntity<>("Usuario no encontrado", HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
                     return ResponseEntity.ok().body(usuario);
 

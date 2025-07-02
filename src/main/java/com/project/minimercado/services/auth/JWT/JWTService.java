@@ -8,8 +8,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
-
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -53,6 +51,7 @@ public class JWTService {
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
+
         return claimsResolver.apply(claims);
     }
 
@@ -60,8 +59,10 @@ public class JWTService {
     public String generateToken(String username, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
-        String token = createToken(claims, username); // Solo una vez
+        System.out.println(claims);
+        String token = createToken(claims, username);// Solo una vez
         System.out.println(token);
+
         tokeninhash.put(token, true);
         return token;
     }
@@ -83,6 +84,7 @@ public class JWTService {
         }
         try {
             final String username = extractUsername(token);
+            System.out.println("Username extraído del token: " + username);
             return username.equals(userDetails.getUsername()) && isValidTokenFormat(token);
         } catch (Exception e) {
             return false;

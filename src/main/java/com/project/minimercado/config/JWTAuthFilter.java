@@ -13,6 +13,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
@@ -57,6 +58,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 path.startsWith("/api/public/") ||
                 path.startsWith("/public/") ||
                 path.startsWith("/chat/") ||
+                path.startsWith("/ws/") ||
                 path.contains("swagger") ||
                 path.contains("api-docs");
 
@@ -65,9 +67,9 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain
+            @NotNull HttpServletRequest request,
+            @NotNull HttpServletResponse response,
+            @NotNull FilterChain filterChain
     ) throws ServletException, IOException {
 
         try {
@@ -105,7 +107,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                         userDetails = userDetailsService.loadUserByUsername(username);
                         userDetailsCache.put(username, userDetails);
                     }
-                    // **IMPORTANTE**: seteo la autenticación en el contexto para esta petición
+
                     setAuthentication(userDetails, request);
                 }
                 filterChain.doFilter(request, response);

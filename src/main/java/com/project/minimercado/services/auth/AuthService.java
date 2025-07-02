@@ -1,7 +1,7 @@
 package com.project.minimercado.services.auth;
 
 
-import com.project.minimercado.dto.UsuarioDTO;
+
 import com.project.minimercado.model.bussines.Usuario;
 import com.project.minimercado.model.login.LoginRequest;
 import com.project.minimercado.model.login.LoginResponse;
@@ -16,7 +16,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,7 +58,7 @@ public class AuthService {
 
             if (authentication.isAuthenticated()) {
                 UserDetailsWithId userDetails = (UserDetailsWithId) authentication.getPrincipal();
-                System.out.println(userDetails.getAuthorities());
+
                 String role = userDetails.getAuthorities().stream()
                         .findFirst()
                         .map(GrantedAuthority::getAuthority)
@@ -113,6 +112,7 @@ public class AuthService {
         if (m.equals("success")) {
             return "success";
         }
+
         return "error";
     }
 

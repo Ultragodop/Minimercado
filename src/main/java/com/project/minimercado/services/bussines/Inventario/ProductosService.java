@@ -93,7 +93,7 @@ public class ProductosService {
         return productosRepository.save(producto);
     }
 
-    public Producto validateproduct(Producto producto) {
+    public void validateproduct(Producto producto) {
         if (producto.getNombre() == null || producto.getNombre().trim().isEmpty()) {
             throw new RuntimeException("El nombre del producto es requerido");
         }
@@ -118,7 +118,6 @@ public class ProductosService {
         if (producto.getStockMinimo() == null || producto.getStockMinimo() < 0) {
             throw new RuntimeException("El stock mínimo no puede ser negativo");
         }
-        return producto;
     }
 }
 

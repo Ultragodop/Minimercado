@@ -67,11 +67,21 @@ public class Jwt implements HandshakeInterceptor {
         attributes.put("token", token);
         logger.info("JWT validado en la solicitud WebSocket");
         attributes.put("username", jwtService.extractUsername(token));
-        logger.info("Username extraído del token: {}", jwtService.extractUsername(token));
+
 
         return true;
     }
 
+    /**
+     *
+     * Método que se ejecuta después de completar el handshake.
+     * No se utiliza en este caso, pero es necesario implementarlo
+     * Para cumplir con la interfaz HandshakeInterceptor.
+     * @param request
+     * @param response
+     * @param wsHandler
+     * @param exception
+     */
     @Override
     public void afterHandshake(
             @NotNull ServerHttpRequest request,

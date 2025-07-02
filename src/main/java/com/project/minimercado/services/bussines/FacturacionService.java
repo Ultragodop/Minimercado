@@ -97,8 +97,6 @@ public class FacturacionService {
     }
 
     private String generarXML(Ticket ticket) {
-        // Aquí implementarías la generación del XML según el formato requerido
-        // Por ahora retornamos un XML simple de ejemplo
         return String.format("""
                         <?xml version="1.0" encoding="UTF-8"?>
                         <ticket>
