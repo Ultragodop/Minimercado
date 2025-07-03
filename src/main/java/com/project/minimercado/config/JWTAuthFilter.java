@@ -79,10 +79,8 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 sendError(response, "El header no puede estar vacio", HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
-            boolean istokenstored = jwtService.isTokenStored(jwt);
-            boolean isvalidtokenformat = jwtService.isValidTokenFormat(jwt);
-            
-            if (!istokenstored || !isvalidtokenformat) {
+
+            if (!jwtService.isTokenStored(jwt) || !jwtService.isValidTokenFormat(jwt)) {
                 sendError(response, "Token invalidado o no existe", HttpServletResponse.SC_FORBIDDEN);
                 return;
             }
@@ -95,8 +93,8 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                     userDetails = userDetailsService.loadUserByUsername(username);
                     userDetailsCache.put(username, userDetails);
                 }
-                boolean validtoken= jwtService.validateToken(jwt, userDetails);
-                if(!validtoken) {
+
+                if(!jwtService.validateToken(jwt, userDetails)) {
                     sendError(response,"Token expirado o invalidado", HttpServletResponse.SC_UNAUTHORIZED );
                 }
                 
