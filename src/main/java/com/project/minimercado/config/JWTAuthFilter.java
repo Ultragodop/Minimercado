@@ -9,7 +9,6 @@ import io.jsonwebtoken.JwtException;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +17,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -63,12 +62,11 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             @NotNull HttpServletRequest request,
             @NotNull HttpServletResponse response,
             @NotNull FilterChain filterChain
-    ) throws ServletException, IOException {
+    ) throws IOException {
 
         try {
             final String authHeader = request.getHeader("Authorization");
 
-            // Paso 1: Verificación rápida de header
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 sendError(response, "El header tiene que venir con el token malparido", HttpServletResponse.SC_UNAUTHORIZED);
                 filterChain.doFilter(request, response);
@@ -77,70 +75,36 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
             final String jwt = authHeader.substring(7);
 
-            if(jwt.isBlank()) {
+            if (jwt.isBlank()) {
                 sendError(response, "El header no puede estar vacio", HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
-            boolean istokenstored= jwtService.isTokenStored(jwt);
-            // 2) Si el token sigue almacenado en JWTService, resuelvo UserDetails y seteo Authentication
-            if (!istokenstored) {
+            boolean istokenstored = jwtService.isTokenStored(jwt);
+            boolean isvalidtokenformat = jwtService.isValidTokenFormat(jwt);
+            
+            if (!istokenstored || !isvalidtokenformat) {
                 sendError(response, "Token invalidado o no existe", HttpServletResponse.SC_FORBIDDEN);
                 return;
             }
-            if(istokenstored) {
-
-
-                // Extraigo username del JWT (sin lanzar más validaciones, pues ya está cacheado en JWTService)
-                String username = jwtService.extractUsername(jwt);
-                System.out.println("Username extraído del JWT: " + username);
-                if (username != null) {
-                    // Busco UserDetails en caché o en el servicio
-                    UserDetailsWithId userDetails = userDetailsCache.getIfPresent(username);
-                    if (userDetails == null) {
-                        userDetails = userDetailsService.loadUserByUsername(username);
-                        userDetailsCache.put(username, userDetails);
-                    }
-
-                    setAuthentication(userDetails, request);
+            
+            String username = jwtService.extractUsername(jwt);
+            if (username != null) {
+                
+                UserDetailsWithId userDetails = userDetailsCache.getIfPresent(username);
+                if (userDetails == null) {
+                    userDetails = userDetailsService.loadUserByUsername(username);
+                    userDetailsCache.put(username, userDetails);
                 }
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-
-
-            // Paso 3: Validación de estructura básica
-            if(!jwtService.isValidTokenFormat(jwt)) {
-                sendError(response, "Invalid token format", HttpServletResponse.SC_UNAUTHORIZED);
-                return;
-            }
-
-            // Paso 4: Extracción async de user details
-            final String username = jwtService.extractUsername(jwt);
-            if (username == null) {
-                sendError(response, "Username not found in token", HttpServletResponse.SC_UNAUTHORIZED);
-                return;
-            }
-            long start = System.currentTimeMillis();
-            // Paso 5: Carga async con caché y timeout
-            UserDetailsWithId userDetails = loadUserDetailsAsync(username).get(2000, TimeUnit.MILLISECONDS);
-
-            long duration = System.currentTimeMillis() - start;
-            System.out.println("Tiempo carga UserDetails para " + username + ": " + duration + " ms");
-
-            // Paso 6: Validación final del token
-            if (jwtService.validateToken(jwt, userDetails)) {
+                boolean validtoken= jwtService.validateToken(jwt, userDetails);
+                if(!validtoken) {
+                    sendError(response,"Token expirado o invalidado", HttpServletResponse.SC_UNAUTHORIZED );
+                }
+                
 
                 setAuthentication(userDetails, request);
-                filterChain.doFilter(request, response);
-            } else {
-                sendError(response, "Token validation failed", HttpServletResponse.SC_UNAUTHORIZED);
             }
+            filterChain.doFilter(request, response);
 
-        } catch (TimeoutException e) {
-            sendError(response, "Authentication timeout", HttpServletResponse.SC_GATEWAY_TIMEOUT);
-        } catch (ExecutionException e) {
-            sendError(response, "User details service error", HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } catch (JwtException | AuthenticationException e) {
             sendError(response, "Authentication error: " + e.getMessage(), HttpServletResponse.SC_UNAUTHORIZED);
         } catch (Exception e) {
@@ -148,22 +112,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
         }
     }
 
-    private CompletableFuture<UserDetailsWithId> loadUserDetailsAsync(String username) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
 
-                UserDetailsWithId cached = userDetailsCache.getIfPresent(username);
-
-                if (cached != null) return cached;
-
-                UserDetailsWithId details = userDetailsService.loadUserByUsername(username);
-                userDetailsCache.put(username, details);
-                return details;
-            } catch (UsernameNotFoundException e) {
-                throw new CompletionException(e);
-            }
-        }, authExecutor);
-    }
 
     private void setAuthentication(UserDetailsWithId userDetails, HttpServletRequest request) {
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(

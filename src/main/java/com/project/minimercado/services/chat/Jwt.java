@@ -55,7 +55,7 @@ public class Jwt implements HandshakeInterceptor {
             resp.sendError((HttpStatus.UNAUTHORIZED.value()), "Token no proporcionado");
         }
 
-        if (!jwtService.isValidTokenFormat(token) && !jwtService.isTokenStored(token)) {
+        if (!jwtService.isValidTokenFormat(token) || !jwtService.isTokenStored(token)) {
             logger.warn("Token no valido en la solicitud WebSocket");
             resp.sendError(HttpStatus.UNAUTHORIZED.value(), "Token no válido o no almacenado");
 
@@ -63,7 +63,7 @@ public class Jwt implements HandshakeInterceptor {
         }
         logger.info("Token válido en la solicitud WebSocket: {}", token);
 
-        // Guardamos token y username para luego obtenerlo en el handler
+
         attributes.put("token", token);
         logger.info("JWT validado en la solicitud WebSocket");
         attributes.put("username", jwtService.extractUsername(token));
