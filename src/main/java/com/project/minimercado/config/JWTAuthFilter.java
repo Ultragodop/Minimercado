@@ -31,21 +31,14 @@ import java.util.concurrent.*;
 public class JWTAuthFilter extends OncePerRequestFilter {
     private final JWTService jwtService;
     private final UserDetailsServiceWithId userDetailsService;
-    private Cache<String, Boolean> validTokenCache;
     private Cache<String, UserDetailsWithId> userDetailsCache;
     private ExecutorService authExecutor;
 
     @PostConstruct
     public void init() {
-
-        validTokenCache = Caffeine.newBuilder()
-                .expireAfterWrite(15, TimeUnit.MINUTES)
-                .maximumSize(1000)
-                .build();
-
         userDetailsCache = Caffeine.newBuilder()
-                .expireAfterWrite(30, TimeUnit.MINUTES)
-                .maximumSize(500)
+                .expireAfterWrite(60, TimeUnit.MINUTES)
+                .maximumSize(100)
                 .build();
 
         authExecutor = Executors.newWorkStealingPool(8);
@@ -88,15 +81,15 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 sendError(response, "El header no puede estar vacio", HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
+            boolean istokenstored= jwtService.isTokenStored(jwt);
             // 2) Si el token sigue almacenado en JWTService, resuelvo UserDetails y seteo Authentication
-            if (!jwtService.isTokenStored(jwt)) {
+            if (!istokenstored) {
                 sendError(response, "Token invalidado o no existe", HttpServletResponse.SC_FORBIDDEN);
                 return;
             }
+            if(istokenstored) {
 
 
-
-                if(jwtService.isTokenStored(jwt)){
                 // Extraigo username del JWT (sin lanzar más validaciones, pues ya está cacheado en JWTService)
                 String username = jwtService.extractUsername(jwt);
                 System.out.println("Username extraído del JWT: " + username);
@@ -117,7 +110,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
 
             // Paso 3: Validación de estructura básica
-            if (!jwtService.isValidTokenFormat(jwt)) {
+            if(!jwtService.isValidTokenFormat(jwt)) {
                 sendError(response, "Invalid token format", HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
@@ -137,7 +130,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
             // Paso 6: Validación final del token
             if (jwtService.validateToken(jwt, userDetails)) {
-                validTokenCache.put(jwt, true);  // Almacenar en caché
+
                 setAuthentication(userDetails, request);
                 filterChain.doFilter(request, response);
             } else {
@@ -160,6 +153,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             try {
 
                 UserDetailsWithId cached = userDetailsCache.getIfPresent(username);
+
                 if (cached != null) return cached;
 
                 UserDetailsWithId details = userDetailsService.loadUserByUsername(username);

@@ -26,10 +26,13 @@ public class MyUsrDtlsService implements UserDetailsServiceWithId {
     @Override
     @Cacheable(value = "userDetails", key = "#username")
     public UserDetailsWithId loadUserByUsername(String username) throws UsernameNotFoundException {
+        long startTime = System.currentTimeMillis();
         Usuario usuario = usuariorepository.findByNombre(username);
-        String n = usuario.getRol();
+        long endTime = System.currentTimeMillis();
+        System.out.println("Tiempo de busqueda de usuario: "+ (endTime - startTime) + "ms");
+
         // Si no se encuentra el usuario, lanzamos fuckin una excepción
-        System.out.println("Buscando usuario: " + username + " con rol: " + n);
+
         if (usuario == null) {
             throw new UsernameNotFoundException("Nombre no encontrado: " + username);
         }

@@ -25,7 +25,7 @@ import org.springframework.util.StringUtils;
 public class AuthService {
     private static final int MIN_PASSWORD_LENGTH = 8;
     private static final String USERNAME_PATTERN = "^[a-zA-Z0-9_]{3,20}$";
-    private final BCryptPasswordEncoder encryptor = new BCryptPasswordEncoder(12);
+    private final BCryptPasswordEncoder encryptor = new BCryptPasswordEncoder(8);
     private final JWTService jwtService;
 
 
@@ -42,13 +42,14 @@ public class AuthService {
 
     @Transactional
     public LoginResponse login(LoginRequest loginRequest) {
+
         try {
             if (!isValidLoginRequest(loginRequest)) {
                 return new LoginResponse("error","422" ,"Parámetros inválidos");
             }
 
 
-
+            long startTimeauth= System.currentTimeMillis();
             Authentication authentication = authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getUsername(),
@@ -63,11 +64,12 @@ public class AuthService {
                         .findFirst()
                         .map(GrantedAuthority::getAuthority)
                         .orElse("ROLE_USER");
+                long endTimeauth= System.currentTimeMillis();
+                System.out.println("Tiempo de espera de autenticacion: " +(endTimeauth - startTimeauth)+ "ms");
 
+                String token = jwtService.generateToken(userDetails.getUsername(),role);
 
-
-
-                return new LoginResponse("success", jwtService.generateToken(userDetails.getUsername(),role), userDetails.getId());
+                return new LoginResponse("success", token, userDetails.getId());
             }
 
             return new LoginResponse("error","401", "Autenticación fallida");

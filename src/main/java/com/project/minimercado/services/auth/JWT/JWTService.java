@@ -60,7 +60,7 @@ public class JWTService {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
         System.out.println(claims);
-        String token = createToken(claims, username);// Solo una vez
+        String token = createToken(claims, username);
         System.out.println(token);
 
         tokeninhash.put(token, true);
