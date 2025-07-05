@@ -1,0 +1,153 @@
+CREATE TABLE Usuario (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    contrasena VARCHAR(255) NOT NULL,
+    rol ENUM('USUARIO', 'ADMIN_INSTITUCION', 'ADMIN_VETERINARIA') NOT NULL
+);
+
+CREATE TABLE Institucion (
+    id_institucion INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    direccion VARCHAR(255),
+    telefono VARCHAR(50),
+    email VARCHAR(100),
+    descripcion TEXT,
+    horario_atencion VARCHAR(100),
+    tipo ENUM('REFUGIO', 'VETERINARIA') NOT NULL
+);
+
+
+CREATE TABLE Representa (
+    id_usuario      INT NOT NULL,
+    id_institucion  INT NOT NULL,
+    PRIMARY KEY (id_usuario, id_institucion),
+    FOREIGN KEY (id_usuario)     REFERENCES Usuario(id_usuario),
+    FOREIGN KEY (id_institucion) REFERENCES Institucion(id_institucion)
+);
+
+
+CREATE TABLE Mascota (
+    id_mascota   INT AUTO_INCREMENT PRIMARY KEY,
+    nombre       VARCHAR(100),
+    especie      VARCHAR(50),
+    raza         VARCHAR(50),
+    tamanio      ENUM('PEQUENO', 'MEDIANO', 'GRANDE'),
+    edad         INT,
+    estado_salud VARCHAR(100),
+    id_institucion INT NOT NULL,
+    FOREIGN KEY (id_institucion) REFERENCES Institucion(id_institucion)
+);
+
+
+CREATE TABLE EstadoAdopcion (
+    id_estado   INT AUTO_INCREMENT PRIMARY KEY,
+    id_mascota  INT NOT NULL,
+    estado      ENUM('DISPONIBLE', 'EN_PROCESO', 'RESERVADA', 'ADOPTADA') NOT NULL,
+    fecha       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_mascota) REFERENCES Mascota(id_mascota)
+);
+
+
+CREATE TABLE Adopcion (
+    id_adopcion      INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario       INT NOT NULL,
+    id_mascota       INT NOT NULL,
+    fecha_solicitud  DATE NOT NULL,
+    estado           ENUM('PENDIENTE', 'APROBADA', 'RECHAZADA') DEFAULT 'PENDIENTE',
+    FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario),
+    FOREIGN KEY (id_mascota) REFERENCES Mascota(id_mascota)
+);
+
+
+CREATE TABLE Donacion (
+    id_donacion     INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario      INT NOT NULL,
+    id_institucion  INT NOT NULL,
+    monto           DECIMAL(10,2) NOT NULL,
+    fecha           DATE NOT NULL,
+    comentario      TEXT,
+    FOREIGN KEY (id_usuario)     REFERENCES Usuario(id_usuario),
+    FOREIGN KEY (id_institucion) REFERENCES Institucion(id_institucion)
+);
+
+
+CREATE TABLE Chat (
+    id_chat        INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario     INT NOT NULL,
+    id_institucion INT NOT NULL,
+    mensaje        TEXT NOT NULL,
+    fecha          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_usuario)     REFERENCES Usuario(id_usuario),
+    FOREIGN KEY (id_institucion) REFERENCES Institucion(id_institucion)
+);
+
+
+CREATE TABLE Tema (
+    id_tema     INT AUTO_INCREMENT PRIMARY KEY,
+    titulo      VARCHAR(150) NOT NULL,
+    descripcion TEXT
+
+);
+
+
+CREATE TABLE Publicacion (
+    id_pub             INT AUTO_INCREMENT PRIMARY KEY,
+    id_tema            INT NOT NULL,
+    id_usuario         INT NOT NULL,
+    contenido          TEXT NOT NULL,
+    fecha_publicacion  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    tipo ENUM('DUDA','PROGRESO','ANUNCIO','OTRO') DEFAULT 'OTRO',
+    FOREIGN KEY (id_tema)    REFERENCES Tema(id_tema),
+    FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario)
+);
+
+
+CREATE TABLE Comentario (
+    id_com           INT AUTO_INCREMENT PRIMARY KEY,
+    id_pub           INT NOT NULL,
+    id_usuario       INT NOT NULL,
+    texto            TEXT NOT NULL,
+    fecha_comentario DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_pub)      REFERENCES Publicacion(id_pub),
+    FOREIGN KEY (id_usuario)  REFERENCES Usuario(id_usuario)
+);
+
+
+CREATE TABLE LikePublicacion (
+    id_usuario INT NOT NULL,
+    id_pub     INT NOT NULL,
+    fecha_like DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_usuario, id_pub),
+    FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario),
+    FOREIGN KEY (id_pub)      REFERENCES Publicacion(id_pub)
+);
+
+
+CREATE TABLE LikeComentario (
+    id_usuario INT NOT NULL,
+    id_com     INT NOT NULL,
+    fecha_like DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_usuario, id_com),
+    FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario),
+    FOREIGN KEY (id_com)      REFERENCES Comentario(id_com)
+);
+
+
+CREATE TABLE AdjuntoPublicacion (
+    id_adjunto   INT AUTO_INCREMENT PRIMARY KEY,
+    id_pub       INT NOT NULL,
+    url          VARCHAR(255) NOT NULL,
+    tipo_archivo VARCHAR(50),
+    fecha_subida DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_pub) REFERENCES Publicacion(id_pub)
+);
+
+
+CREATE TABLE AdjuntoComentario (
+    id_adjunto   INT AUTO_INCREMENT PRIMARY KEY,
+    id_com       INT NOT NULL,
+    url          VARCHAR(255) NOT NULL,
+    tipo_archivo VARCHAR(50),
+    fecha_subida DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_com) REFERENCES Comentario(id_com)
+);

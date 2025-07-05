@@ -53,6 +53,7 @@ public class Jwt implements HandshakeInterceptor {
 
 
             resp.sendError((HttpStatus.UNAUTHORIZED.value()), "Token no proporcionado");
+            return false;
         }
 
         if (!jwtService.isValidTokenFormat(token) || !jwtService.isTokenStored(token)) {

@@ -86,6 +86,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             }
             
             String username = jwtService.extractUsername(jwt);
+            System.out.println(username);
             if (username != null) {
                 
                 UserDetailsWithId userDetails = userDetailsCache.getIfPresent(username);
