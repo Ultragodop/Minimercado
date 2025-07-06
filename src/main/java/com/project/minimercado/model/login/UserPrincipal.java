@@ -1,9 +1,9 @@
 package com.project.minimercado.model.login;
 
 import com.project.minimercado.model.bussines.Usuario;
+import com.project.minimercado.utils.UserDetailsWithId;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import com.project.minimercado.utils.UserDetailsWithId;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,6 +32,7 @@ public class UserPrincipal implements UserDetailsWithId {
     public String getPassword() {
         return usuario.getPasswordHash();
     }
+
     @Override
     public long getId() {
         return usuario.getId();

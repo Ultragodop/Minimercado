@@ -7,7 +7,6 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -48,6 +47,6 @@ public class Venta {
 
 
     public void setIdUsuario(Usuario usuario) {
-    this.idUsuario = usuario;
+        this.idUsuario = usuario;
     }
 }

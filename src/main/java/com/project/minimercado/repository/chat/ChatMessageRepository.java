@@ -1,7 +1,6 @@
 package com.project.minimercado.repository.chat;
 
 import com.project.minimercado.model.chat.ChatMessage;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

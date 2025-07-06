@@ -29,7 +29,7 @@ public class MyUsrDtlsService implements UserDetailsServiceWithId {
         long startTime = System.currentTimeMillis();
         Usuario usuario = usuariorepository.findByNombre(username);
         long endTime = System.currentTimeMillis();
-        System.out.println("Tiempo de busqueda de usuario: "+ (endTime - startTime) + "ms");
+        System.out.println("Tiempo de busqueda de usuario: " + (endTime - startTime) + "ms");
 
         // Si no se encuentra el usuario, lanzamos fuckin una excepción
 

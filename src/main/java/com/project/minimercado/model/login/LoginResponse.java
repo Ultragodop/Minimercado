@@ -16,9 +16,11 @@ public class LoginResponse extends Response {
 
         super(status, token, id);
     }
+
     public LoginResponse(String status, String numero, String response) {
         super(status, numero, response);
     }
+
 }
 
 

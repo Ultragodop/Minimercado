@@ -8,7 +8,6 @@ import com.project.minimercado.repository.bussines.UsuarioRepository;
 import com.project.minimercado.repository.chat.ChatMessageRepository;
 import com.project.minimercado.repository.chat.SalaChatRepository;
 import com.project.minimercado.repository.chat.salaUsuarioRepository;
-
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -31,7 +30,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final salaUsuarioRepository salaUsuarioRepo;
     private final UsuarioRepository usuarioRepo;
     private final ChatMessageRepository chatMessageRepository;
-    private final Timestamp timestamp= new Timestamp(System.currentTimeMillis());
+    private final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
     private final Map<String, Set<WebSocketSession>> salasSessions = new ConcurrentHashMap<>();
 
     private final ObjectMapper mapper = new ObjectMapper();
@@ -90,9 +89,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
 
 
-
-
-}
+    }
 
 
     @Override
@@ -101,11 +98,6 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         // 1) Deserializas tu objeto de mensaje
         ChatMessage chatMessage = mapper.readValue(message.getPayload(), ChatMessage.class);
         logger.info("Mensaje recibido: {}", chatMessage);
-
-
-
-
-
 
 
         // 2) Extraes el nombre de la sala de la URI
@@ -130,7 +122,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 it.remove();
             }
         }
-        chatMessageRepository.insert(chatMessage.getUsuario(), chatMessage.getMensaje(), timestamp );
+        chatMessageRepository.insert(chatMessage.getUsuario(), chatMessage.getMensaje(), timestamp);
     }
 
 

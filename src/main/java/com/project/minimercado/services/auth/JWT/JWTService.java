@@ -26,7 +26,6 @@ public class JWTService {
             .build();
 
 
-
     //Esto es una mala practica ya que hardcodea la jwt secret key
     @Value("${jwt.secret}")
     private String secretKey;
@@ -34,7 +33,6 @@ public class JWTService {
     private long jwtExpiration;
 
     private SecretKey key;
-
 
 
     @PostConstruct
@@ -66,7 +64,6 @@ public class JWTService {
         tokeninhash.put(token, true);
         return token;
     }
-
 
 
     public boolean validateToken(String token, UserDetailsWithId userDetails) {
@@ -147,6 +144,7 @@ public class JWTService {
         System.out.println("Token invalidado correctamente");
         return "success";
     }
+
     public boolean isTokenStored(String token) {
 
         if (token == null || token.isEmpty()) {

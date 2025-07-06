@@ -31,7 +31,7 @@ public class Jwt implements HandshakeInterceptor {
     public boolean beforeHandshake(ServerHttpRequest request, @NotNull ServerHttpResponse response,
                                    @NotNull WebSocketHandler wsHandler, @NotNull Map<String, Object> attributes) throws IOException {
 
-        ServletServerHttpResponse servletResp = (ServletServerHttpResponse) response ;
+        ServletServerHttpResponse servletResp = (ServletServerHttpResponse) response;
         HttpServletResponse resp = servletResp.getServletResponse();
         URI uri = request.getURI();
         String query = uri.getQuery();
@@ -74,10 +74,10 @@ public class Jwt implements HandshakeInterceptor {
     }
 
     /**
-     *
      * Método que se ejecuta después de completar el handshake.
      * No se utiliza en este caso, pero es necesario implementarlo
      * Para cumplir con la interfaz HandshakeInterceptor.
+     *
      * @param request
      * @param response
      * @param wsHandler

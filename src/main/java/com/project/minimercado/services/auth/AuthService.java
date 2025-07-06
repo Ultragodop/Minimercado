@@ -1,11 +1,9 @@
 package com.project.minimercado.services.auth;
 
 
-
 import com.project.minimercado.model.bussines.Usuario;
 import com.project.minimercado.model.login.LoginRequest;
 import com.project.minimercado.model.login.LoginResponse;
-
 import com.project.minimercado.model.register.RegisterRequest;
 import com.project.minimercado.model.register.RegisterResponse;
 import com.project.minimercado.repository.bussines.UsuarioRepository;
@@ -45,11 +43,11 @@ public class AuthService {
 
         try {
             if (!isValidLoginRequest(loginRequest)) {
-                return new LoginResponse("error","422" ,"Parámetros inválidos");
+                return new LoginResponse("error", "422", "Parámetros inválidos");
             }
 
 
-            long startTimeauth= System.currentTimeMillis();
+            long startTimeauth = System.currentTimeMillis();
             Authentication authentication = authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getUsername(),
@@ -64,19 +62,19 @@ public class AuthService {
                         .findFirst()
                         .map(GrantedAuthority::getAuthority)
                         .orElse("ROLE_USER");
-                long endTimeauth= System.currentTimeMillis();
-                System.out.println("Tiempo de espera de autenticacion: " +(endTimeauth - startTimeauth)+ "ms");
+                long endTimeauth = System.currentTimeMillis();
+                System.out.println("Tiempo de espera de autenticacion: " + (endTimeauth - startTimeauth) + "ms");
 
-                String token = jwtService.generateToken(userDetails.getUsername(),role);
+                String token = jwtService.generateToken(userDetails.getUsername(), role);
 
                 return new LoginResponse("success", token, userDetails.getId());
             }
 
-            return new LoginResponse("error","401", "Autenticación fallida");
+            return new LoginResponse("error", "401", "Autenticación fallida");
         } catch (BadCredentialsException e) {
-            return new LoginResponse("error","401", "Credenciales inválidas");
+            return new LoginResponse("error", "401", "Credenciales inválidas");
         } catch (Exception e) {
-            return new LoginResponse("error","500", "Error en el servidor: " + e.getMessage());
+            return new LoginResponse("error", "500", "Error en el servidor: " + e.getMessage());
         }
     }
 

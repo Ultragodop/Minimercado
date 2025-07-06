@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class InventarioService {
@@ -88,7 +89,8 @@ public class InventarioService {
             Map<String, Object> infoProveedor = new HashMap<>();
 
             // Obtener productos del proveedor
-            List<Producto> productosProveedor = (List<Producto>) proveedor.getProducto().stream().toList();
+            proveedor.getProducto().stream();
+            List<Producto> productosProveedor = (List<Producto>) Collectors.toList();
 
             infoProveedor.put("totalProductos", productosProveedor.size());
 

@@ -3,12 +3,11 @@ package com.project.minimercado.dto.chat;
 import lombok.Setter;
 
 
-
 @Setter
 
-public class ChatMessage  {
+public class ChatMessage {
     private String usuario;
-    private String mensaje;;
+    private String mensaje;
 
     public ChatMessage() {
     }  // Para Jackson si usás JSON

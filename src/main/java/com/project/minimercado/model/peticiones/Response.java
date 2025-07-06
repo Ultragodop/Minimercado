@@ -13,21 +13,24 @@ public class Response {
     private String message;
     private Long id;
     private String httpError;
+
     public Response(String status, String token, Long id) {
         this.status = status;
         this.token = token;
         this.id = id;
     }
+
     public Response(String status, String message) {
         this.status = status;
         this.message = message;
     }
-public Response(String status, String numero, String message) {
+
+    public Response(String status, String numero, String message) {
         this.status = status;
         this.httpError = numero;
         this.message = message;
 
 
-}
+    }
 
 }

@@ -13,10 +13,20 @@ public class LoginResponseWithId {
     }
 
     // getters y setters
-    public LoginResponse getResponse() { return response; }
-    public void setResponse(LoginResponse response) { this.response = response; }
+    public LoginResponse getResponse() {
+        return response;
+    }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public void setResponse(LoginResponse response) {
+        this.response = response;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 }
 

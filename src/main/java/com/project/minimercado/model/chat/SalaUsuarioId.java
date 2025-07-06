@@ -24,8 +24,7 @@ public class SalaUsuarioId implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof SalaUsuarioId)) return false;
-        SalaUsuarioId that = (SalaUsuarioId) o;
+        if (!(o instanceof SalaUsuarioId that)) return false;
         return Objects.equals(salaId, that.salaId) && Objects.equals(usuarioId, that.usuarioId);
     }
 

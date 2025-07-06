@@ -17,13 +17,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -84,21 +85,21 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 sendError(response, "Token invalidado o no existe", HttpServletResponse.SC_FORBIDDEN);
                 return;
             }
-            
+
             String username = jwtService.extractUsername(jwt);
             System.out.println(username);
             if (username != null) {
-                
+
                 UserDetailsWithId userDetails = userDetailsCache.getIfPresent(username);
                 if (userDetails == null) {
                     userDetails = userDetailsService.loadUserByUsername(username);
                     userDetailsCache.put(username, userDetails);
                 }
 
-                if(!jwtService.validateToken(jwt, userDetails)) {
-                    sendError(response,"Token expirado o invalidado", HttpServletResponse.SC_UNAUTHORIZED );
+                if (!jwtService.validateToken(jwt, userDetails)) {
+                    sendError(response, "Token expirado o invalidado", HttpServletResponse.SC_UNAUTHORIZED);
                 }
-                
+
 
                 setAuthentication(userDetails, request);
             }
@@ -110,7 +111,6 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             sendError(response, "Internal server error", HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
-
 
 
     private void setAuthentication(UserDetailsWithId userDetails, HttpServletRequest request) {

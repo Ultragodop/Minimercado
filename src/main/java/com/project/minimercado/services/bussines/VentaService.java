@@ -13,7 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class VentaService {
@@ -68,7 +71,7 @@ public class VentaService {
                 throw new RuntimeException("Stock insuficiente para el producto: " + producto.getNombre());
             }
 
-      
+
             DetalleVenta detalle = new DetalleVenta();
             detalle.setIdProducto(producto);
             detalle.setIdVenta(venta);

@@ -18,18 +18,11 @@ package com.project.minimercado.utils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
 import org.springframework.context.support.MessageSourceAccessor;
-import org.springframework.security.authentication.AccountExpiredException;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.CredentialsExpiredException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.LockedException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.SpringSecurityMessageSource;
@@ -79,13 +72,9 @@ public abstract class AbstractUserDetailsAuthenticationProviderWithId
     protected final Log logger = LogFactory.getLog(getClass());
 
     protected MessageSourceAccessor messages = SpringSecurityMessageSource.getAccessor();
-
-    private UserCacheWithId userCache = new NullUserCacheWithId();
-
-    private boolean forcePrincipalAsString = false;
-
     protected boolean hideUserNotFoundExceptions = true;
-
+    private UserCacheWithId userCache = new NullUserCacheWithId();
+    private boolean forcePrincipalAsString = false;
     private UserDetailsCheckerWithId preAuthenticationChecks = new DefaultPreAuthenticationChecks();
 
     private UserDetailsCheckerWithId postAuthenticationChecks = new DefaultPostAuthenticationChecks();
@@ -100,13 +89,14 @@ public abstract class AbstractUserDetailsAuthenticationProviderWithId
      * properties of <code>UserDetails</code> and/or
      * <code>UsernamePasswordAuthenticationToken</code>, these should also appear in this
      * method.
-     * @param userDetails as retrieved from the
-     * {@link #retrieveUser(String, UsernamePasswordAuthenticationToken)} or
-     * <code>UserCache</code>
+     *
+     * @param userDetails    as retrieved from the
+     *                       {@link #retrieveUser(String, UsernamePasswordAuthenticationToken)} or
+     *                       <code>UserCache</code>
      * @param authentication the current request that needs to be authenticated
      * @throws AuthenticationException AuthenticationException if the credentials could
-     * not be validated (generally a <code>BadCredentialsException</code>, an
-     * <code>AuthenticationServiceException</code>)
+     *                                 not be validated (generally a <code>BadCredentialsException</code>, an
+     *                                 <code>AuthenticationServiceException</code>)
      */
     protected abstract void additionalAuthenticationChecks(UserDetailsWithId userDetails,
                                                            UsernamePasswordAuthenticationToken authentication) throws AuthenticationException;
@@ -130,8 +120,7 @@ public abstract class AbstractUserDetailsAuthenticationProviderWithId
             cacheWasUsed = false;
             try {
                 user = retrieveUser(username, (UsernamePasswordAuthenticationToken) authentication);
-            }
-            catch (UsernameNotFoundException ex) {
+            } catch (UsernameNotFoundException ex) {
                 this.logger.debug("Failed to find user '" + username + "'");
                 if (!this.hideUserNotFoundExceptions) {
                     throw ex;
@@ -144,8 +133,7 @@ public abstract class AbstractUserDetailsAuthenticationProviderWithId
         try {
             this.preAuthenticationChecks.check(user);
             additionalAuthenticationChecks(user, (UsernamePasswordAuthenticationToken) authentication);
-        }
-        catch (AuthenticationException ex) {
+        } catch (AuthenticationException ex) {
             if (!cacheWasUsed) {
                 throw ex;
             }
@@ -180,10 +168,11 @@ public abstract class AbstractUserDetailsAuthenticationProviderWithId
      * Subclasses will usually store the original credentials the user supplied (not
      * salted or encoded passwords) in the returned <code>Authentication</code> object.
      * </p>
-     * @param principal that should be the principal in the returned object (defined by
-     * the {@link #isForcePrincipalAsString()} method)
+     *
+     * @param principal      that should be the principal in the returned object (defined by
+     *                       the {@link #isForcePrincipalAsString()} method)
      * @param authentication that was presented to the provider for validation
-     * @param user that was loaded by the implementation
+     * @param user           that was loaded by the implementation
      * @return the successful authentication token
      */
     protected Authentication createSuccessAuthentication(Object principal, Authentication authentication,
@@ -200,7 +189,6 @@ public abstract class AbstractUserDetailsAuthenticationProviderWithId
     }
 
 
-
     protected void doAfterPropertiesSet() throws Exception {
     }
 
@@ -208,12 +196,36 @@ public abstract class AbstractUserDetailsAuthenticationProviderWithId
         return this.userCache;
     }
 
+    public void setUserCache(UserCacheWithId userCache) {
+        this.userCache = userCache;
+    }
+
     public boolean isForcePrincipalAsString() {
         return this.forcePrincipalAsString;
     }
 
+    public void setForcePrincipalAsString(boolean forcePrincipalAsString) {
+        this.forcePrincipalAsString = forcePrincipalAsString;
+    }
+
     public boolean isHideUserNotFoundExceptions() {
         return this.hideUserNotFoundExceptions;
+    }
+
+    /**
+     * By default the <code>AbstractUserDetailsAuthenticationProvider</code> throws a
+     * <code>BadCredentialsException</code> if a username is not found or the password is
+     * incorrect. Setting this property to <code>false</code> will cause
+     * <code>UsernameNotFoundException</code>s to be thrown instead for the former. Note
+     * this is considered less secure than throwing <code>BadCredentialsException</code>
+     * for both exceptions.
+     *
+     * @param hideUserNotFoundExceptions set to <code>false</code> if you wish
+     *                                   <code>UsernameNotFoundException</code>s to be thrown instead of the non-specific
+     *                                   <code>BadCredentialsException</code> (defaults to <code>true</code>)
+     */
+    public void setHideUserNotFoundExceptions(boolean hideUserNotFoundExceptions) {
+        this.hideUserNotFoundExceptions = hideUserNotFoundExceptions;
     }
 
     /**
@@ -233,56 +245,34 @@ public abstract class AbstractUserDetailsAuthenticationProviderWithId
      * want to ensure that this method is the only method that is capable of
      * authenticating a request, as no <code>UserDetails</code> will ever be cached) or
      * ensure subclasses implement
-
+     * <p>
      * to compare the credentials of a cached <code>UserDetails</code> with subsequent
      * authentication requests.
      * </p>
      * <p>
      * Most of the time subclasses will not perform credentials inspection in this method,
      * instead performing it in
-     *
+     * <p>
      * so that code related to credentials validation need not be duplicated across two
      * methods.
      * </p>
-     * @param username The username to retrieve
+     *
+     * @param username       The username to retrieve
      * @param authentication The authentication request, which subclasses <em>may</em>
-     * need to perform a binding-based retrieval of the <code>UserDetails</code>
+     *                       need to perform a binding-based retrieval of the <code>UserDetails</code>
      * @return the user information (never <code>null</code> - instead an exception should
      * the thrown)
      * @throws AuthenticationException if the credentials could not be validated
-     * (generally a <code>BadCredentialsException</code>, an
-     * <code>AuthenticationServiceException</code> or
-     * <code>UsernameNotFoundException</code>)
+     *                                 (generally a <code>BadCredentialsException</code>, an
+     *                                 <code>AuthenticationServiceException</code> or
+     *                                 <code>UsernameNotFoundException</code>)
      */
     protected abstract UserDetailsWithId retrieveUser(String username, UsernamePasswordAuthenticationToken authentication)
             throws AuthenticationException;
 
-    public void setForcePrincipalAsString(boolean forcePrincipalAsString) {
-        this.forcePrincipalAsString = forcePrincipalAsString;
-    }
-
-    /**
-     * By default the <code>AbstractUserDetailsAuthenticationProvider</code> throws a
-     * <code>BadCredentialsException</code> if a username is not found or the password is
-     * incorrect. Setting this property to <code>false</code> will cause
-     * <code>UsernameNotFoundException</code>s to be thrown instead for the former. Note
-     * this is considered less secure than throwing <code>BadCredentialsException</code>
-     * for both exceptions.
-     * @param hideUserNotFoundExceptions set to <code>false</code> if you wish
-     * <code>UsernameNotFoundException</code>s to be thrown instead of the non-specific
-     * <code>BadCredentialsException</code> (defaults to <code>true</code>)
-     */
-    public void setHideUserNotFoundExceptions(boolean hideUserNotFoundExceptions) {
-        this.hideUserNotFoundExceptions = hideUserNotFoundExceptions;
-    }
-
     @Override
     public void setMessageSource(MessageSource messageSource) {
         this.messages = new MessageSourceAccessor(messageSource);
-    }
-
-    public void setUserCache(UserCacheWithId userCache) {
-        this.userCache = userCache;
     }
 
     @Override
@@ -297,6 +287,7 @@ public abstract class AbstractUserDetailsAuthenticationProviderWithId
     /**
      * Sets the policy will be used to verify the status of the loaded
      * <tt>UserDetails</tt> <em>before</em> validation of the credentials takes place.
+     *
      * @param preAuthenticationChecks strategy to be invoked prior to authentication.
      */
     public void setPreAuthenticationChecks(UserDetailsCheckerWithId preAuthenticationChecks) {

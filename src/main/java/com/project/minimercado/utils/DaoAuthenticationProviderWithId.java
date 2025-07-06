@@ -22,8 +22,6 @@ import org.springframework.security.authentication.InternalAuthenticationService
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
-
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -66,6 +64,7 @@ public class DaoAuthenticationProviderWithId extends AbstractUserDetailsAuthenti
 
     /**
      * Creates a new instance using the provided {@link PasswordEncoder}
+     *
      * @param passwordEncoder the {@link PasswordEncoder} to use. Cannot be null.
      * @since 6.0.3
      */
@@ -106,15 +105,12 @@ public class DaoAuthenticationProviderWithId extends AbstractUserDetailsAuthenti
                         "UserDetailsService returned null, which is an interface contract violation");
             }
             return loadedUser;
-        }
-        catch (UsernameNotFoundException ex) {
+        } catch (UsernameNotFoundException ex) {
             mitigateAgainstTimingAttack(authentication);
             throw ex;
-        }
-        catch (InternalAuthenticationServiceException ex) {
+        } catch (InternalAuthenticationServiceException ex) {
             throw ex;
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             throw new InternalAuthenticationServiceException(ex.getMessage(), ex);
         }
     }
@@ -133,7 +129,6 @@ public class DaoAuthenticationProviderWithId extends AbstractUserDetailsAuthenti
     }
 
 
-
     private void prepareTimingAttackProtection() {
         if (this.userNotFoundEncodedPassword == null) {
             this.userNotFoundEncodedPassword = this.passwordEncoder.encode(USER_NOT_FOUND_PASSWORD);
@@ -147,12 +142,17 @@ public class DaoAuthenticationProviderWithId extends AbstractUserDetailsAuthenti
         }
     }
 
+    protected PasswordEncoder getPasswordEncoder() {
+        return this.passwordEncoder;
+    }
+
     /**
      * Sets the PasswordEncoder instance to be used to encode and validate passwords. If
      * not set, the password will be compared using
      * {@link PasswordEncoderFactories#createDelegatingPasswordEncoder()}
+     *
      * @param passwordEncoder must be an instance of one of the {@code PasswordEncoder}
-     * types.
+     *                        types.
      */
     public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
         Assert.notNull(passwordEncoder, "passwordEncoder cannot be null");
@@ -160,16 +160,12 @@ public class DaoAuthenticationProviderWithId extends AbstractUserDetailsAuthenti
         this.userNotFoundEncodedPassword = null;
     }
 
-    protected PasswordEncoder getPasswordEncoder() {
-        return this.passwordEncoder;
+    protected UserDetailsServiceWithId getUserDetailsService() {
+        return this.userDetailsService;
     }
 
     public void setUserDetailsService(UserDetailsServiceWithId userDetailsService) {
         this.userDetailsService = userDetailsService;
-    }
-
-    protected UserDetailsServiceWithId getUserDetailsService() {
-        return this.userDetailsService;
     }
 
     public void setUserDetailsPasswordService(UserDetailsPasswordServiceId userDetailsPasswordService) {

@@ -20,6 +20,7 @@ import java.util.Map;
 public class VentaController {
     private final VentaService ventaService;
     private final UsuarioRepository usuarioRepository;
+
     public VentaController(VentaService ventaService, UsuarioRepository usuarioRepository) {
         this.ventaService = ventaService;
         this.usuarioRepository = usuarioRepository;
@@ -29,7 +30,7 @@ public class VentaController {
     public ResponseEntity<Map<String, String>> realizarVentaTarjeta(
             @RequestBody VentaTarjetaRequest request) {
         try {
-            if (request == null || request.getIdUsuario() == null|| request.getDetallesVenta() == null) {
+            if (request == null || request.getIdUsuario() == null || request.getDetallesVenta() == null) {
                 return ResponseEntity.badRequest()
                         .body(Map.of("error", "Datos de venta incompletos"));
             }

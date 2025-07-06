@@ -1,9 +1,8 @@
 package com.project.minimercado.controllers.auth;
+
 import com.project.minimercado.model.bussines.Usuario;
 import com.project.minimercado.model.login.LoginRequest;
 import com.project.minimercado.model.login.LoginResponse;
-
-
 import com.project.minimercado.model.register.RegisterRequest;
 import com.project.minimercado.model.register.RegisterResponse;
 import com.project.minimercado.repository.bussines.UsuarioRepository;
@@ -15,8 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
-
-
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -26,7 +23,7 @@ public class AuthController {
 
     public AuthController(AuthService authService, UsuarioRepository usuarioRepository) {
         this.authService = authService;
-        this.usuarioRepository=usuarioRepository;
+        this.usuarioRepository = usuarioRepository;
 
     }
 
@@ -118,7 +115,7 @@ public class AuthController {
         }
     }
 
-    @GetMapping( "/Usuario/{IdUsuario}")
+    @GetMapping("/Usuario/{IdUsuario}")
     public ResponseEntity<Usuario> getUsuario(@PathVariable Long IdUsuario) {
         try {
 
@@ -127,7 +124,7 @@ public class AuthController {
 
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
-                    return ResponseEntity.ok().body(usuario);
+            return ResponseEntity.ok().body(usuario);
 
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();

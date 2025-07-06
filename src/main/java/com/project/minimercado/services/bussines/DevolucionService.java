@@ -45,7 +45,7 @@ public class DevolucionService {
         }
 
         // Validar que la venta no tiene más de 24 horas
-        long horasTranscurridas = ChronoUnit.HOURS.between((Temporal) venta.getFecha(), Instant.now());
+        long horasTranscurridas = ChronoUnit.HOURS.between(venta.getFecha(), Instant.now());
         if (horasTranscurridas > 24) {
             throw new RuntimeException("No se pueden realizar devoluciones de ventas con más de 24 horas de antigüedad");
         }
