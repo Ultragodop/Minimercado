@@ -7,7 +7,7 @@ public interface ProductoDTO {
     Integer getId();
 
     String getNombre();
-
+    Long getIdCategoria(); // ID de la categoría
     String getDescripcion();
 
     Double getPrecioCompra();

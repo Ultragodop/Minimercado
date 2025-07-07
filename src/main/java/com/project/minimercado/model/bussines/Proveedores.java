@@ -1,5 +1,6 @@
 package com.project.minimercado.model.bussines;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,6 +40,7 @@ public class Proveedores {
     @Column(name = "fecha_actualizacion")
     private Instant fechaActualizacion;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "idProveedor")
     private Set<Producto> productos = new LinkedHashSet<>();
 

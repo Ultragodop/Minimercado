@@ -138,7 +138,7 @@ public class InventarioController {
     }
 
     @GetMapping("/productos/activos")
-    public ResponseEntity<List<Producto>> listarProductosActivos() {
+    public ResponseEntity<List<ProductoDTO>> listarProductosActivos() {
         try {
             return ResponseEntity.ok(inventarioService.listarProductosActivos());
         } catch (Exception e) {

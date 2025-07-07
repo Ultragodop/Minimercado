@@ -35,7 +35,7 @@ public class ReportesService {
         this.productosRepository = productosRepository;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ReporteVentas generarReporteDiarioVentas(LocalDate fecha) {
         Instant inicioDia = fecha.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant finDia = fecha.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
@@ -43,7 +43,7 @@ public class ReportesService {
         return generarReporteVentas(inicioDia, finDia, "DIARIO");
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ReporteVentas generarReporteSemanalVentas(LocalDate fechaInicio, LocalDate fechaFin) {
         Instant inicioSemana = fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant finSemana = fechaFin.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
@@ -51,7 +51,7 @@ public class ReportesService {
         return generarReporteVentas(inicioSemana, finSemana, "SEMANA");
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<ReporteVentas> generarReportePeriodoVentas(LocalDate fechaInicio, LocalDate fechaFin) {
         Instant inicio = fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant fin = fechaFin.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
@@ -59,7 +59,7 @@ public class ReportesService {
         return reporteVentasRepository.findByPeriodo(inicio, fin);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public Map<String, List<ReporteVentas>> generarReporteMetodoPago(LocalDate fechaInicio, LocalDate fechaFin) {
         Instant inicio = fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant fin = fechaFin.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
@@ -69,7 +69,7 @@ public class ReportesService {
                 .collect(Collectors.groupingBy(ReporteVentas::getMetodoPago));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<AnalisisProducto> generarRankingProductos(LocalDate fechaInicio, LocalDate fechaFin) {
         Instant inicio = fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant fin = fechaFin.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
@@ -77,7 +77,7 @@ public class ReportesService {
         return analisisProductoRepository.findTopVendidos(inicio, fin);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<AnalisisProducto> generarAnalisisRentabilidad(LocalDate fechaInicio, LocalDate fechaFin) {
         Instant inicio = fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant fin = fechaFin.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
@@ -85,15 +85,15 @@ public class ReportesService {
         return analisisProductoRepository.findTopRentables(inicio, fin);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<AnalisisProducto> generarAnalisisRotacion(LocalDate fechaInicio, LocalDate fechaFin) {
         Instant inicio = fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant fin = fechaFin.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
 
         return analisisProductoRepository.findTopRotacion(inicio, fin);
     }
-
-    private ReporteVentas generarReporteVentas(Instant fechaInicio, Instant fechaFin, String periodo) {
+@Transactional
+protected ReporteVentas generarReporteVentas(Instant fechaInicio, Instant fechaFin, String periodo) {
         List<Venta> ventas = ventaRepository.findAll().stream()
                 .filter(v -> v.getFecha().isAfter(fechaInicio) && v.getFecha().isBefore(fechaFin))
                 .toList();

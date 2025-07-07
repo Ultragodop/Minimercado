@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class InventarioService {
@@ -34,7 +33,7 @@ public class InventarioService {
         List<Producto> productosBajoStock = productoService.obtenerProductosBajoStock();
 
         // Obtener todos los productos activos
-        List<Producto> productosActivos = productoService.listarProductosActivos();
+        List<ProductoDTO> productosActivos = productoService.listarProductosActivos();
 
         // Calcular valor total del inventario
         double valorTotalInventario = productosActivos.stream()
@@ -89,8 +88,7 @@ public class InventarioService {
             Map<String, Object> infoProveedor = new HashMap<>();
 
             // Obtener productos del proveedor
-            proveedor.getProducto().stream();
-            List<Producto> productosProveedor = (List<Producto>) Collectors.toList();
+            List<Producto> productosProveedor = (List<Producto>) proveedor.getProducto().stream().toList();
 
             infoProveedor.put("totalProductos", productosProveedor.size());
 
@@ -130,7 +128,7 @@ public class InventarioService {
 
     @Transactional(readOnly = true)
     public Map<String, Object> obtenerEstadisticasInventario() {
-        List<Producto> productos = productoService.listarProductosActivos();
+        List<ProductoDTO> productos = productoService.listarProductosActivos();
 
         Map<String, Object> estadisticas = new HashMap<>();
 
@@ -139,7 +137,7 @@ public class InventarioService {
 
         // Total de unidades en inventario
         int totalUnidades = productos.stream()
-                .mapToInt(Producto::getStockActual)
+                .mapToInt(ProductoDTO::getStockActual)
                 .sum();
         estadisticas.put("totalUnidades", totalUnidades);
 
@@ -193,7 +191,7 @@ public class InventarioService {
     }
 
     @Transactional(readOnly = true)
-    public List<Producto> listarProductosActivos() {
+    public List<ProductoDTO> listarProductosActivos() {
         return productoService.listarProductosActivos();
     }
 
@@ -206,4 +204,5 @@ public class InventarioService {
     public Producto actualizarStock(Integer id, Integer cantidad) {
         return productoService.actualizarStock(id, cantidad);
     }
-} 
+
+    }

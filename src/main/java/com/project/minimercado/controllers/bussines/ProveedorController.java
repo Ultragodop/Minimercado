@@ -20,9 +20,9 @@ public class ProveedorController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Proveedores> crearProveedor(@RequestBody Proveedores proveedor) {
+    public ResponseEntity<String> crearProveedor(@RequestBody Proveedores proveedor) {
         try {
-            Proveedores nuevoProveedor = proveedorService.crearProveedor(proveedor);
+            String nuevoProveedor = proveedorService.crearProveedor(proveedor);
             return new ResponseEntity<>(nuevoProveedor, HttpStatus.CREATED);
         } catch (RuntimeException e) {
             throw new RuntimeException("Error al crear el proveedor: " + e.getMessage());

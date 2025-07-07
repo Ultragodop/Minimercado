@@ -130,15 +130,20 @@ public class JWTService {
     }
 
     public String InvalidateToken(String token) {
-        token = token.trim().replace("\"", "");
+        if(token.startsWith("\"") && token.endsWith("\"")) {
+            System.out.println("Token con comillas detectado, eliminando comillas...");
+            token = token.trim().replace("\"", "");
+        }
+
 
         System.out.println("Invalidando token: [" + token + "]");
         System.out.println("Hash: " + token.hashCode());
 
-        if (token.isEmpty()) {
+        if (tokeninhash.getIfPresent(token) == null) {
             System.out.println("Token no encontrado en el mapa");
             return "error";
         }
+
 
         tokeninhash.put(token, false);
         System.out.println("Token invalidado correctamente");
@@ -148,9 +153,10 @@ public class JWTService {
     public boolean isTokenStored(String token) {
 
         if (token == null || token.isEmpty()) {
+            System.out.println("Token is null or empty");
             return false;
         }
-        // devuelve false si el booleano en el fuckin token es false
+
         return tokeninhash.get(token, k -> false);
     }
 

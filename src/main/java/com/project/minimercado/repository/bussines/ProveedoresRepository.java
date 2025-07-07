@@ -14,5 +14,6 @@ public interface ProveedoresRepository extends JpaRepository<Proveedores, Intege
             "(SELECT p.nombre FROM Producto p WHERE p.idProveedor = pr) AS productosNombres " +
             "FROM Proveedores pr")
     Optional<ProveedorProductosDTO> findProveedoresConProductos(Integer idProveedor);
+    Optional<Proveedores> findByNombre(String nombre);
 }
 

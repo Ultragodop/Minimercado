@@ -32,7 +32,7 @@ public class PedidosProveedor {
     @Column(name = "estado", nullable = false)
     private String estado;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne
     @JoinColumn(name = "id_proveedor", nullable = false)
     private com.project.minimercado.model.bussines.Proveedores idProveedor;
 

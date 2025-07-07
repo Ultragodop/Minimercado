@@ -1,11 +1,14 @@
 package com.project.minimercado.services.bussines.Inventario;
 
+import com.project.minimercado.dto.bussines.Inventario.ProductoDTO;
 import com.project.minimercado.dto.bussines.Inventario.ProveedorProductosDTO;
+import com.project.minimercado.model.bussines.Producto;
 import com.project.minimercado.model.bussines.Proveedores;
 import com.project.minimercado.repository.bussines.ProveedoresRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -23,9 +26,9 @@ public class ProveedorService {
     }
 
     @Transactional
-    public Proveedores crearProveedor(Proveedores proveedor) {
+    public String crearProveedor(Proveedores proveedor) {
         validarProveedor(proveedor);
-        return proveedoresRepository.save(proveedor);
+        return "Proveedor creado exitosamente con ID: " + proveedoresRepository.save(proveedor).getId();
     }
 
     @Transactional
@@ -72,15 +75,15 @@ public class ProveedorService {
 
     @Transactional(readOnly = true)
     public Proveedores buscarProveedorPorNombre(String nombre) {
-        return proveedoresRepository.findAll().stream()
+        return proveedoresRepository.findByNombre(nombre).stream()
                 .filter(p -> p.getNombre().equalsIgnoreCase(nombre))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con nombre: " + nombre));
     }
 
     @Transactional(readOnly = true)
-    public boolean existeProveedor(String nombre) {
-        return proveedoresRepository.findAll().stream()
+    public boolean existeProveedor(String nombre ) {
+        return proveedoresRepository.findByNombre(nombre).stream()
                 .anyMatch(p -> p.getNombre().equalsIgnoreCase(nombre));
     }
 
@@ -126,4 +129,5 @@ public class ProveedorService {
             }
         }
     }
-} 
+
+    }

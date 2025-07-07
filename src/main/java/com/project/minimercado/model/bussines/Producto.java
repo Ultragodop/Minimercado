@@ -1,5 +1,6 @@
 package com.project.minimercado.model.bussines;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,10 +37,11 @@ public class Producto {
     @Column(name = "precio_venta", nullable = false)
     private Double precioVenta;
 
-    @Column(name = "fechaVencimiento", nullable = false)
+    @Column(name = "fecha_vencimiento", nullable = false)
     private Date fechaVencimiento;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+
+    @ManyToOne
     @JoinColumn(name = "id_categoria", nullable = false, foreignKey = @ForeignKey(name = "fk_producto_categoria"))
     private Categoria idCategoria;
 
@@ -52,7 +54,8 @@ public class Producto {
     @Column(name = "stock_minimo", nullable = false)
     private Integer stockMinimo;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+
+    @ManyToOne
     @JoinColumn(name = "id_proveedor", nullable = false, foreignKey = @ForeignKey(name = "fk_producto_proveedor"))
     private Proveedores idProveedor;
 
