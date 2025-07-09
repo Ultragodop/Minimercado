@@ -1,6 +1,7 @@
 package com.project.minimercado.model.bussines;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,6 +29,8 @@ public class Venta {
 
     @Column(name = "total", nullable = false, precision = 12, scale = 2)
     private BigDecimal total;
+
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario idUsuario;

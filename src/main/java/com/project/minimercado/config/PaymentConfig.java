@@ -10,13 +10,12 @@ import org.springframework.web.client.RestTemplate;
 @ConfigurationProperties(prefix = "payment")
 @Data
 public class PaymentConfig {
-    private String baseUrl;
-    private String merchantSecret;
-    private String commerceName;
-    private String siteUrl;
-    private String callbackUrl;
+    private String baseUrl= "https://api.payments.arriba.uy/";
+    private String merchantSecret="cb1668e9-cb22-41ad-99d2-1c0e6e5deb8c";
+    private String commerceName="Fui yo no fuiste tu yo si fui";
+    private String siteUrl= "apoalolala.com";
+    private String callbackUrl= "F";// aca tendria que poner el endpoint de mi api que recibe el callback, es decir mi-ip-actual:3050/api/payments/callback
     private boolean testMode;
-
 
     @Bean
     public RestTemplate paymentRestTemplate() {

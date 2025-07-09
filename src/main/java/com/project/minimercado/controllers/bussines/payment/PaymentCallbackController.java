@@ -21,6 +21,7 @@ public class PaymentCallbackController {
 
     @PostMapping("/callback")
     public ResponseEntity<Void> handleCallback(@RequestBody CallbackRequest callback) {
+        log.info("Recibiendo callback de pago: {}", callback);
         if (callback == null || callback.getTransactionExternalId() == null || callback.getPurchaseData() == null) {
             log.error("Callback inválido recibido");
             return ResponseEntity.badRequest().build();

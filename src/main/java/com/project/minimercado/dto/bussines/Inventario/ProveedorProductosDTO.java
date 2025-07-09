@@ -6,6 +6,7 @@ import java.util.List;
 public interface ProveedorProductosDTO {
     Integer getId();
 
+
     String getNombre();
 
     void setNombre(String nombre);

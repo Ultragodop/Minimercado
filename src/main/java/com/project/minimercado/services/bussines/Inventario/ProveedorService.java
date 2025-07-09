@@ -1,6 +1,7 @@
 package com.project.minimercado.services.bussines.Inventario;
 
 import com.project.minimercado.dto.bussines.Inventario.ProductoDTO;
+import com.project.minimercado.dto.bussines.Inventario.ProveedorDTO;
 import com.project.minimercado.dto.bussines.Inventario.ProveedorProductosDTO;
 import com.project.minimercado.model.bussines.Producto;
 import com.project.minimercado.model.bussines.Proveedores;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Service
@@ -68,6 +70,18 @@ public class ProveedorService {
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con ID: " + id));
     }
 
+    @Transactional(readOnly = true)
+    public List<ProveedorDTO> listarProveedoresDTO() {
+        List<ProveedorDTO> proveedoresDTOS = proveedoresRepository.findAllProveedoresDTOs();
+        if (proveedoresDTOS.isEmpty()) {
+            throw new RuntimeException("No se encontraron proveedores");
+        }
+        for (ProveedorDTO proveedorDTO : proveedoresDTOS){
+            System.out.println(proveedorDTO.getNombre());
+        }
+
+        return proveedoresDTOS;
+    }
     @Transactional(readOnly = true)
     public List<Proveedores> listarProveedores() {
         return proveedoresRepository.findAll();

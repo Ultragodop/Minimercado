@@ -1,11 +1,16 @@
 package com.project.minimercado.controllers.bussines;
 
+import com.project.minimercado.dto.bussines.Ventas.VentaDTO;
+import com.project.minimercado.dto.payment.Cart;
+import com.project.minimercado.dto.payment.PaymentRequest;
 import com.project.minimercado.model.bussines.Usuario;
+import com.project.minimercado.model.bussines.Venta;
 import com.project.minimercado.repository.bussines.UsuarioRepository;
 import com.project.minimercado.services.bussines.VentaService;
 import com.project.minimercado.services.bussines.VentaService.DetalleVentaTemp;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +32,7 @@ public class VentaController {
     }
 
     @PostMapping("/tarjeta")
-    public ResponseEntity<Map<String, String>> realizarVentaTarjeta(
+    public ResponseEntity<Map<String, Object>> realizarVentaTarjeta(
             @RequestBody VentaTarjetaRequest request) {
         try {
             if (request == null || request.getIdUsuario() == null || request.getDetallesVenta() == null) {
@@ -37,7 +42,7 @@ public class VentaController {
             Usuario usuario = usuarioRepository.findById(request.getIdUsuario().getId())
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-            String paymentUrl = ventaService.realizarVentaTarjeta(
+            PaymentRequest paymentUrl = ventaService.realizarVentaTarjeta(
                     usuario,
                     request.getDetallesVenta()
             );
@@ -55,25 +60,18 @@ public class VentaController {
     }
 
     @PostMapping("/efectivo")
-    public ResponseEntity<Map<String, Object>> realizarVentaEfectivo(
+    public ResponseEntity<VentaDTO> realizarVentaEfectivo(
             @RequestBody VentaTarjetaRequest request) {
         try {
             Usuario usuario = usuarioRepository.findById(request.getIdUsuario().getId())
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-            var venta = ventaService.realizarVentaEfectivo(
-                    usuario,
-                    request.getDetallesVenta()
-            );
+            var venta = ventaService.realizarVentaEfectivo(usuario, request.getDetallesVenta());
 
-            return ResponseEntity.ok(Map.of(
-                    "id", venta.getId(),
-                    "total", venta.getTotal(),
-                    "fecha", venta.getFecha().atZone(ZoneId.of("America/Montevideo")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-            ));
+           return ResponseEntity.ok(venta);
         } catch (Exception e) {
             log.error("Error al procesar venta en efectivo", e);
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", e.getMessage()));
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+
         }
     }
 

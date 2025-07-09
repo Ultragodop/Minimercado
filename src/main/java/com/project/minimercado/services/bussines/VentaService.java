@@ -1,13 +1,12 @@
 package com.project.minimercado.services.bussines;
 
 import com.project.minimercado.config.PaymentConfig;
-import com.project.minimercado.dto.payment.Cart;
-import com.project.minimercado.dto.payment.Client;
-import com.project.minimercado.dto.payment.PaymentRequest;
-import com.project.minimercado.dto.payment.Product;
+import com.project.minimercado.dto.bussines.Ventas.VentaDTO;
+import com.project.minimercado.dto.payment.*;
 import com.project.minimercado.model.bussines.*;
 import com.project.minimercado.repository.bussines.*;
 import com.project.minimercado.services.payment.PaymentService;
+import com.sun.jdi.IntegerValue;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,8 +42,8 @@ public class VentaService {
     }
 
     @Transactional
-    public Venta realizarVentaEfectivo(Usuario idUsuario, List<DetalleVentaTemp> detallesVenta) {
-
+    public VentaDTO realizarVentaEfectivo(Usuario idUsuario, List<DetalleVentaTemp> detallesVenta) {
+        //Con un dto se podria modificar el precio de producto por venta, ejemplo: precio de venta con descuento, un precio elegido por el usuario a cargo(dependiendo del cliente que venga a comprar)
         if (idUsuario == null) {
             throw new RuntimeException("El usuario es requerido para realizar la venta");
         }
@@ -64,6 +63,7 @@ public class VentaService {
 
         for (DetalleVentaTemp det : detallesVenta) {
             Producto producto = productoRepository.findById(det.getIdProducto())
+
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + det.getIdProducto()));
 
 
@@ -76,9 +76,11 @@ public class VentaService {
             detalle.setIdProducto(producto);
             detalle.setIdVenta(venta);
             detalle.setCantidad(det.getCantidad());
-            detalle.setPrecioUnitario(BigDecimal.valueOf(producto.getPrecioVenta()));
-            detalle.setSubtotal(detalle.getPrecioUnitario().multiply(BigDecimal.valueOf(det.getCantidad())));
 
+
+            detalle.setPrecioUnitario(BigDecimal.valueOf(producto.getPrecioVenta())); // Aca se puede modificar el precio de venta si se desea
+            detalle.setSubtotal(detalle.getPrecioUnitario().multiply(BigDecimal.valueOf(det.getCantidad())));
+            //detalle.setPrecioUnitario(producto.getPrecioVenta()*det.getDescuento())
             producto.setStockActual(producto.getStockActual() - det.getCantidad());
             productoRepository.save(producto);
 
@@ -94,18 +96,22 @@ public class VentaService {
 
 
         registrarMovimientoContable(venta);
+        VentaDTO ventaDTO = ventaRepository.findVentaDTOById(venta.getId());
+                if(ventaDTO == null) {
+            throw new RuntimeException("Error al obtener la venta guardada");
+                }
+        System.out.println("Venta realizada con éxito: " + ventaDTO.getEstado());
 
-        return venta;
+        return ventaDTO;
     }
 
     @Transactional
-    public String realizarVentaTarjeta(Usuario idusuario, List<DetalleVentaTemp> detallesVenta) {
+    public PaymentRequest realizarVentaTarjeta(Usuario idusuario, List<DetalleVentaTemp> detallesVenta) {
 
         validarVenta(idusuario, detallesVenta);
         validarPermisosUsuario(idusuario);
-
-
         Venta venta = crearVentaInicial(idusuario);
+        venta.setId(currentTimeMillis());
         venta.setEstado("PENDIENTE_PAGO");
         BigDecimal totalVenta = BigDecimal.ZERO;
         List<Product> paymentProducts = new ArrayList<>();
@@ -121,15 +127,17 @@ public class VentaService {
             totalVenta = totalVenta.add(detalle.getSubtotal());
 
             paymentProducts.add(crearProductoPago(detalle));
+
         }
 
         venta.setTotal(totalVenta);
 
         try {
 
-            String paymentUrl = crearSolicitudPago(venta, paymentProducts, totalVenta);
 
+          PaymentRequest paymentUrl = crearSolicitudPago(venta, paymentProducts, totalVenta);
             ventaRepository.save(venta);
+
 
             return paymentUrl;
         } catch (Exception e) {
@@ -188,19 +196,21 @@ public class VentaService {
         paymentProduct.setName(detalle.getIdProducto().getNombre());
         paymentProduct.setQuantity(BigDecimal.valueOf(detalle.getCantidad()));
         paymentProduct.setAmount(detalle.getSubtotal());
-        paymentProduct.setTaxedAmount(detalle.getSubtotal().multiply(BigDecimal.valueOf(0.82)));
+        paymentProduct.setTaxedAmount(detalle.getSubtotal());
+        System.out.println("Producto de pago creado: " + paymentProduct.getName() + ", Cantidad: " + paymentProduct.getQuantity() + ", Monto: " + paymentProduct.getAmount());
         return paymentProduct;
     }
 
-    private String crearSolicitudPago(Venta venta, List<Product> paymentProducts, BigDecimal totalVenta) {
+    private PaymentRequest crearSolicitudPago(Venta venta, List<Product> paymentProducts, BigDecimal totalVenta) {
         PaymentRequest paymentRequest = new PaymentRequest();
 
         String transactionId = UUID.randomUUID().toString();
 
         Cart cart = new Cart();
+
         cart.setInvoiceNumber(venta.getId());
         cart.setTotalAmount(totalVenta);
-        cart.setTaxedAmount(totalVenta.multiply(BigDecimal.valueOf(0.82)));
+        cart.setTaxedAmount(totalVenta);
         cart.setProducts(paymentProducts);
         cart.setTransactionExternalId(transactionId);
 
@@ -213,8 +223,10 @@ public class VentaService {
         paymentRequest.setCallbackUrl(paymentConfig.getCallbackUrl());
 
         venta.setTransactionExternalId(transactionId);
-
-        return paymentService.createPayment(paymentRequest);
+        System.out.println("Solicitud de pago creada: " + paymentRequest.getCart().getInvoiceNumber() + ", Total: " + paymentRequest.getCart().getTotalAmount());
+        String s = paymentService.createPayment(paymentRequest);
+        System.out.println("Respuesta del servicio de pago: " + s);
+        return paymentRequest; //paymentService.createPayment(paymentRequest);
     }
 
     @Transactional
@@ -280,5 +292,8 @@ public class VentaService {
         public void setCantidad(Integer cantidad) {
             this.cantidad = cantidad;
         }
+    }
+    public static Integer currentTimeMillis() {
+        return (int) (System.currentTimeMillis() % Integer.MAX_VALUE);
     }
 }

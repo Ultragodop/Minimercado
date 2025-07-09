@@ -38,7 +38,6 @@ public class AuthController {
 
             if ("success".equals(response.getStatus())) {
 
-
                 return ResponseEntity.ok()
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + response.getToken())
                         .header("X-Content-Type-Options", "nosniff")
@@ -115,21 +114,8 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/Usuario/{IdUsuario}")
-    public ResponseEntity<Usuario> getUsuario(@PathVariable Long IdUsuario) {
-        try {
-
-            Usuario usuario = usuarioRepository.getUsuarioById(IdUsuario);
-            if (usuario == null) {
-
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-            return ResponseEntity.ok().body(usuario);
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
 
         }
-    }
-}
+
+
 
