@@ -32,7 +32,7 @@ public class Jwt implements HandshakeInterceptor {
                                    @NotNull WebSocketHandler wsHandler, @NotNull Map<String, Object> attributes) throws IOException {
 
         ServletServerHttpResponse servletResp = (ServletServerHttpResponse) response;
-        HttpServletResponse resp = servletResp.getServletResponse();
+        HttpServletResponse resp = servletResp.getServletResponse();;
         URI uri = request.getURI();
         String query = uri.getQuery();
         logger.info("JWT query: " + query);
@@ -47,6 +47,7 @@ public class Jwt implements HandshakeInterceptor {
                 }
             }
         }
+
 
         if (token == null || token.isEmpty()) {
             logger.warn("Token no proporcionado en la solicitud WebSocket");
@@ -89,5 +90,6 @@ public class Jwt implements HandshakeInterceptor {
             @NotNull ServerHttpResponse response,
             @NotNull WebSocketHandler wsHandler,
             Exception exception) {
+        logger.info("Interceptando handler: {}", wsHandler.getClass().getName());
     }
 }

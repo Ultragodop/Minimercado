@@ -31,24 +31,17 @@ public class AuthController {
 
     @PostMapping(value = "/login", consumes = "application/json", produces = "application/json")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
-
-
         try {
-
-
             LoginResponse response = authService.login(loginRequest);
-
             if ("success".equals(response.getStatus())) {
-
                 return ResponseEntity.ok()
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + response.getToken())
+                        .header("Id-Usuario", String.valueOf(response.getId()))
                         .header("X-Content-Type-Options", "nosniff")
                         .header("X-Frame-Options", "DENY")
                         .header("X-XSS-Protection", "1; mode=block")
                         .body(response);
             }
-
-
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .header("X-Content-Type-Options", "nosniff")
                     .header("X-Frame-Options", "DENY")
@@ -64,7 +57,6 @@ public class AuthController {
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
         try {
             RegisterResponse response = authService.register(registerRequest);
-
             if ("success".equals(response.getStatus())) {
                 return ResponseEntity.status(200)
                         .header("X-Content-Type-Options", "nosniff")
