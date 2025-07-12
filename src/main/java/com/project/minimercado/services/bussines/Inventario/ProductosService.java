@@ -3,7 +3,6 @@ package com.project.minimercado.services.bussines.Inventario;
 import com.project.minimercado.dto.bussines.Inventario.ProductoDTO;
 import com.project.minimercado.model.bussines.Categoria;
 import com.project.minimercado.model.bussines.Producto;
-import com.project.minimercado.repository.bussines.CategoriasRepository;
 import com.project.minimercado.repository.bussines.ProductosRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,11 +60,27 @@ public class ProductosService {
         producto.setActivo(false);
         productosRepository.save(producto);
     }
-
-    @Transactional(readOnly = true)
+    @Transactional
     public Producto obtenerProductoPorId(Integer id) {
+        if(id == null) {
+            throw new IllegalArgumentException("El ID del producto no puede ser nulo");
+        }
         return productosRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + id));
+    }
+
+
+    @Transactional(readOnly = true)
+    public ProductoDTO obtenerProductoPorIdDTO(Integer id) {
+        if(id == null) {
+            throw new IllegalArgumentException("El ID del producto no puede ser nulo");
+        }
+        ProductoDTO productoDTO = productosRepository.findProductoDTOById(id);
+        if(productoDTO != null) {
+            return productoDTO;
+        }
+
+        return null;
     }
 
     @Transactional(readOnly = true)
@@ -94,6 +109,7 @@ public class ProductosService {
         Producto producto = obtenerProductoPorId(id);
         producto.setStockActual(producto.getStockActual() + cantidad);
         return productosRepository.save(producto);
+
     }
 
     public void validateproduct(Producto producto) {

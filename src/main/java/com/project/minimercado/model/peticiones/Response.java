@@ -13,7 +13,14 @@ public class Response {
     private String message;
     private Long id;
     private String httpError;
+    private String username;
 
+    public Response(String status, String token, String username, Long id) {
+        this.username= username;
+        this.status = status;
+        this.token = token;
+        this.id = id;
+    }
     public Response(String status, String token, Long id) {
         this.status = status;
         this.token = token;

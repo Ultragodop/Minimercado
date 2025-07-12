@@ -26,23 +26,15 @@ public class SalaChatController {
         return ResponseEntity.ok(nuevaSala);
     }
 
-    @GetMapping("/todas")
-    public ResponseEntity<List<String>> listarSalas() {
-        List<SalaChat> salas = salaChatService.obtenerTodasLasSalas();
-        List<String> nombres = salas.stream()
-                .map(SalaChat::getNombre)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(nombres);
+    @GetMapping("/todas-por-permiso/{idUsuario}")
+    public ResponseEntity<List<String>> listarSalas(@PathVariable long idUsuario) {
+        return ResponseEntity.ok(
+                salaChatService.ObtenerTodasPorPermiso(idUsuario).stream()
+                        .map(SalaChat::getNombre)
+                        .collect(Collectors.toList())
+        );
+     //ahora si se muestran todas las salas de chat por permiso:D
     }
 
-    @GetMapping("/userid")
-    public ResponseEntity<Long> obteneridporusuario(@RequestParam String nombre) {
-        Long v = salaChatService.obteneridporusuario(nombre);
-        if (v == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(v);
-    }
 
 }

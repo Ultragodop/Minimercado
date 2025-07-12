@@ -39,15 +39,16 @@ public class VentaController {
                 return ResponseEntity.badRequest()
                         .body(Map.of("error", "Datos de venta incompletos"));
             }
-            Usuario usuario = usuarioRepository.findById(request.getIdUsuario().getId())
+            Usuario usuario = usuarioRepository.findById(request.idUsuario)
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-            PaymentRequest paymentUrl = ventaService.realizarVentaTarjeta(
+            String paymentUrl = ventaService.realizarVentaTarjeta(
                     usuario,
                     request.getDetallesVenta()
             );
 
-            return ResponseEntity.ok(Map.of("paymentUrl", paymentUrl));
+
+            return ResponseEntity.ok(Map.of("transactionId", paymentUrl));
         } catch (IllegalArgumentException e) {
             log.warn("Error de validación en venta con tarjeta: {}", e.getMessage());
             return ResponseEntity.badRequest()
@@ -63,7 +64,7 @@ public class VentaController {
     public ResponseEntity<VentaDTO> realizarVentaEfectivo(
             @RequestBody VentaTarjetaRequest request) {
         try {
-            Usuario usuario = usuarioRepository.findById(request.getIdUsuario().getId())
+            Usuario usuario = usuarioRepository.findById(request.getIdUsuario())
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
             var venta = ventaService.realizarVentaEfectivo(usuario, request.getDetallesVenta());
 
@@ -95,7 +96,7 @@ public class VentaController {
 
     @Data
     public static class VentaTarjetaRequest {
-        private Usuario idUsuario;
+        private Long idUsuario;
         private List<DetalleVentaTemp> detallesVenta;
     }
 } 

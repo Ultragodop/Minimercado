@@ -1,5 +1,7 @@
 package com.project.minimercado.dto.bussines.Inventario;
 
+import com.project.minimercado.model.bussines.Producto;
+
 import java.util.Date;
 
 
@@ -25,5 +27,6 @@ public interface ProductoDTO {
     Integer getStockMinimo();
 
     Boolean getActivo();
+
 
 }

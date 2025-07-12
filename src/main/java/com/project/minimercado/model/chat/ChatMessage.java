@@ -26,6 +26,42 @@ public class ChatMessage {
 
     private LocalDateTime timestamp;
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public SalaChat getSala() {
+        return sala;
+    }
+
+    public void setSala(SalaChat sala) {
+        this.sala = sala;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
+    }
+
+    public String getMensaje() {
+        return mensaje;
+    }
+
+    public void setMensaje(String mensaje) {
+        this.mensaje = mensaje;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
     @PrePersist
     public void prePersist() {
         timestamp = LocalDateTime.now();

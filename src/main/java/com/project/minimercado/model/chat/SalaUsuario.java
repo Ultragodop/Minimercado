@@ -3,13 +3,16 @@ package com.project.minimercado.model.chat;
 import com.project.minimercado.model.bussines.Usuario;
 import jakarta.persistence.*;
 
+import java.io.Serializable;
+import java.util.Objects;
 @Entity
-
-@Table(name = "sala_usuarios")
-public class SalaUsuario {
+@Table(name = "sala_usuarios", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"sala_id", "id_usuario"})
+})
+public class SalaUsuario implements Serializable {
 
     @EmbeddedId
-    private SalaUsuarioId id = new SalaUsuarioId();
+    private SalaUsuarioId id;
 
     @ManyToOne
     @MapsId("salaId")
@@ -17,19 +20,57 @@ public class SalaUsuario {
     private SalaChat sala;
 
     @ManyToOne
-    @MapsId("usuarioId") // ✔ corregido
+    @MapsId("idUsuario")
     @JoinColumn(name = "id_usuario")
     private Usuario usuario;
 
-    // constructor, getters y setters
+    public SalaUsuario() {}
 
-    public void setSala(SalaChat sala) {
+    public SalaUsuario(SalaUsuarioId id, SalaChat sala, Usuario usuario) {
+        this.id = id;
         this.sala = sala;
-        this.id.setSalaId(sala.getId()); // importante para sincronizar el ID embebido
+        this.usuario = usuario;
+    }
+
+    public SalaUsuario(SalaChat nuevaSala, Usuario creador) {
+        this.id = new SalaUsuarioId(nuevaSala.getId(), creador.getId());
+        this.sala = nuevaSala;
+        this.usuario = creador;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
     }
 
     public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
-        this.id.setUsuarioId(usuario.getId()); // idem
+    }
+
+    public SalaChat getSala() {
+        return sala;
+    }
+
+    public void setSala(SalaChat sala) {
+        this.sala = sala;
+    }
+
+    public SalaUsuarioId getId() {
+        return id;
+    }
+
+    public void setId(SalaUsuarioId id) {
+        this.id = id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SalaUsuario that)) return false;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
     @Modifying
-    @Query("insert into ChatMessage ( sala, usuario, mensaje,timestamp) values (?1, ?2, ?3, ?4)")
-    void insert(String usuario, String mensaje, Timestamp timestamp);
+    @Query(value= "insert into ChatMessage ( sala, usuario, mensaje,timestamp) values (?1, ?2, ?3, ?4)")
+    void insert(String sala,String usuario, String mensaje, Timestamp timestamp);
 
 }

@@ -106,11 +106,13 @@ public class VentaService {
     }
 
     @Transactional
-    public PaymentRequest realizarVentaTarjeta(Usuario idusuario, List<DetalleVentaTemp> detallesVenta) {
+    public String realizarVentaTarjeta(Usuario idusuario, List<DetalleVentaTemp> detallesVenta) {
 
         validarVenta(idusuario, detallesVenta);
         validarPermisosUsuario(idusuario);
         Venta venta = crearVentaInicial(idusuario);
+        Set<DetalleVenta> detalles = venta.getDetalleVentas();
+
         venta.setId(currentTimeMillis());
         venta.setEstado("PENDIENTE_PAGO");
         BigDecimal totalVenta = BigDecimal.ZERO;
@@ -125,7 +127,7 @@ public class VentaService {
 
             DetalleVenta detalle = crearDetalleVenta(venta, producto, det.getCantidad());
             totalVenta = totalVenta.add(detalle.getSubtotal());
-
+            detalles.add(detalle);
             paymentProducts.add(crearProductoPago(detalle));
 
         }
@@ -133,13 +135,11 @@ public class VentaService {
         venta.setTotal(totalVenta);
 
         try {
-
-
-          PaymentRequest paymentUrl = crearSolicitudPago(venta, paymentProducts, totalVenta);
+          String transactionId = crearSolicitudPago(venta, paymentProducts, totalVenta);
             ventaRepository.save(venta);
 
 
-            return paymentUrl;
+            return transactionId;
         } catch (Exception e) {
 
             throw new RuntimeException("Error al procesar el pago: " + e.getMessage(), e);
@@ -201,7 +201,7 @@ public class VentaService {
         return paymentProduct;
     }
 
-    private PaymentRequest crearSolicitudPago(Venta venta, List<Product> paymentProducts, BigDecimal totalVenta) {
+    private String crearSolicitudPago(Venta venta, List<Product> paymentProducts, BigDecimal totalVenta) {
         PaymentRequest paymentRequest = new PaymentRequest();
 
         String transactionId = UUID.randomUUID().toString();
@@ -226,7 +226,7 @@ public class VentaService {
         System.out.println("Solicitud de pago creada: " + paymentRequest.getCart().getInvoiceNumber() + ", Total: " + paymentRequest.getCart().getTotalAmount());
         String s = paymentService.createPayment(paymentRequest);
         System.out.println("Respuesta del servicio de pago: " + s);
-        return paymentRequest; //paymentService.createPayment(paymentRequest);
+                return transactionId;
     }
 
     @Transactional
@@ -255,7 +255,9 @@ public class VentaService {
 
         registrarMovimientoContable(venta);
     }
+public void validarCallBackPago(CallbackRequest request){
 
+}
     private void registrarMovimientoContable(Venta venta) {
         MovimientosContable movimiento = new MovimientosContable();
         movimiento.setFecha(venta.getFecha());
@@ -275,7 +277,9 @@ public class VentaService {
 
     public static class DetalleVentaTemp {
         private Integer idProducto;
+
         private Integer cantidad;
+
 
         public Integer getIdProducto() {
             return idProducto;
@@ -285,14 +289,16 @@ public class VentaService {
             this.idProducto = idProducto;
         }
 
+
+
         public Integer getCantidad() {
             return cantidad;
         }
 
-        public void setCantidad(Integer cantidad) {
-            this.cantidad = cantidad;
-        }
+
     }
+
+
     public static Integer currentTimeMillis() {
         return (int) (System.currentTimeMillis() % Integer.MAX_VALUE);
     }

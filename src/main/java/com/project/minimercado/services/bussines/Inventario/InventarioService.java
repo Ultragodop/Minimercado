@@ -186,8 +186,18 @@ public class InventarioService {
     }
 
     @Transactional(readOnly = true)
-    public Producto obtenerProductoPorId(Integer id) {
-        return productoService.obtenerProductoPorId(id);
+    public ProductoDTO obtenerProductoPorId(Integer id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El ID del producto no puede ser nulo");
+        }
+        if (id <= 0) {
+            throw new IllegalArgumentException("El ID del producto debe ser un número positivo");
+        }
+        ProductoDTO producto = productoService.obtenerProductoPorIdDTO(id);
+        if (producto == null) {
+            throw new IllegalArgumentException("No se encontró un producto con el ID proporcionado: " + id);
+        }
+        return producto;
     }
 
     @Transactional(readOnly = true)

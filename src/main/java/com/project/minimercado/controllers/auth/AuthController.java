@@ -1,6 +1,6 @@
 package com.project.minimercado.controllers.auth;
 
-import com.project.minimercado.model.bussines.Usuario;
+
 import com.project.minimercado.model.login.LoginRequest;
 import com.project.minimercado.model.login.LoginResponse;
 import com.project.minimercado.model.register.RegisterRequest;
@@ -8,6 +8,7 @@ import com.project.minimercado.model.register.RegisterResponse;
 import com.project.minimercado.repository.bussines.UsuarioRepository;
 import com.project.minimercado.services.auth.AuthService;
 import jakarta.validation.Valid;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +20,11 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
-    private final UsuarioRepository usuarioRepository;
+
 
     public AuthController(AuthService authService, UsuarioRepository usuarioRepository) {
         this.authService = authService;
-        this.usuarioRepository = usuarioRepository;
+
 
     }
 
@@ -33,8 +34,9 @@ public class AuthController {
 
 
         try {
-            LoginResponse response = authService.login(loginRequest);
 
+
+            LoginResponse response = authService.login(loginRequest);
 
             if ("success".equals(response.getStatus())) {
 

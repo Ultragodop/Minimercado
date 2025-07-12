@@ -67,7 +67,7 @@ public class AuthService {
 
                 String token = jwtService.generateToken(userDetails.getUsername(), role);
 
-                return new LoginResponse("success", token, userDetails.getId());
+                return new LoginResponse("success", token, userDetails.getUsername(), userDetails.getId());
             }
 
             return new LoginResponse("error", "401", "Autenticación fallida");

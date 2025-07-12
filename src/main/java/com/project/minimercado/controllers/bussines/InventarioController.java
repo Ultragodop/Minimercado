@@ -114,9 +114,13 @@ public class InventarioController {
     }
 
     @GetMapping("/producto/{id}")
-    public ResponseEntity<Producto> obtenerProducto(@PathVariable Integer id) {
+    public ResponseEntity<ProductoDTO> obtenerProducto(@PathVariable Integer id) {
         try {
-            return ResponseEntity.ok(inventarioService.obtenerProductoPorId(id));
+            ProductoDTO producto = inventarioService.obtenerProductoPorId(id);
+            if (producto == null) {
+                return null;
+            }
+            return ResponseEntity.ok(producto);
         } catch (IllegalArgumentException e) {
             log.warn("Error al obtener producto: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
@@ -176,7 +180,7 @@ public class InventarioController {
     public ResponseEntity<Map<String, Object>> obtenerProductoPorId(
             @PathVariable Integer id) {
         try {
-            Producto producto = inventarioService.obtenerProductoPorId(id);
+            ProductoDTO producto = inventarioService.obtenerProductoPorId(id);
             if (producto == null) {
                 return ResponseEntity.notFound().build();
             }
@@ -188,8 +192,8 @@ public class InventarioController {
             response.put("precioVenta", producto.getPrecioVenta());
             response.put("stockActual", producto.getStockActual());
             response.put("stockMinimo", producto.getStockMinimo());
-            response.put("categoria", producto.getIdCategoria().getNombre());
-            response.put("proveedor", producto.getIdProveedor().getNombre());
+            response.put("categoria", producto.getCategoriaNombre());
+            response.put("proveedor", producto.getProveedorNombre());
             response.put("activo", producto.getActivo());
 
             return ResponseEntity.ok(response);

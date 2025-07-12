@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface salaUsuarioRepository extends JpaRepository<SalaUsuario, Integer> {
     boolean existsBySalaAndUsuario(SalaChat sala, Usuario usuario);
+
 }
