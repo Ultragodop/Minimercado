@@ -1,8 +1,9 @@
 package com.project.minimercado.exception;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.project.minimercado.dto.chat.ChatMessage;
+import com.project.minimercado.dto.chat.ChatMessageDTO;
 
+import com.project.minimercado.model.chat.ChatMessage;
 import com.project.minimercado.model.chat.SalaChat;
 import com.project.minimercado.repository.bussines.UsuarioRepository;
 import com.project.minimercado.repository.chat.ChatMessageRepository;
@@ -13,19 +14,19 @@ import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
-import java.net.URI;
+
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
@@ -44,19 +45,25 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final ObjectMapper mapper = new ObjectMapper();
     private SalaChatService salaChatService;
     private final JWTService jwtService;
-
-
+    //Una sesion tiene varios atributos, entre ellos el username, url, etc.
+    //Por lo que se puede acceder a los atributos de la sesión WebSocket
+    //Tambien tiene headers, que son los headers de la solicitud HTTP inicial que despues se convierte en WebSocket: http:// -> ws://
+    //Se pueden obtener los headers de la sesión WebSocket, por ejemplo, para obtener el token JWT o cualquier otro dato que se haya enviado en la solicitud inicial
+    //Para que el usuario no vea el token JWT en la URL, se puede enviar como un header personalizado en la solicitud HTTP inicia:D
 
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         String username = (String) session.getAttributes().get("username");
-
+        session.setTextMessageSizeLimit(2048 * 1024); // Establecer límite de tamaño del mensaje a 2 MB
+        session.setBinaryMessageSizeLimit(2048 * 1024); // Establecer límite de tamaño del mensaje binario a 2 MB
+        logger.info("Headers de la sesion, {}", session.getHandshakeHeaders());
         if (username == null) {
             logger.warn("No se encontró el username en la sesión WebSocket");
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("No autorizado: usuario no encontrado"));
             return;
         }
+
 
 
         String path = Objects.requireNonNull(session.getUri()).getPath();
@@ -72,6 +79,14 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
         logger.info("Usuario {} conectado a la sala {}", username, salaNombre);
         Optional<SalaChat> salaOpt = salaChatRepo.findByNombre(salaNombre);
+        long id= usuarioRepo.getIdUsuario(username);
+        boolean permitir= salaChatService.PermitirConexionPorSala(id , salaNombre);
+        if(!permitir) {
+            logger.warn("Usuario {} no tiene permiso para unirse a la sala {}", username, salaNombre);
+            session.close(CloseStatus.NOT_ACCEPTABLE.withReason("No autorizado: usuario no tiene permiso para unirse a la sala"));
+            return;
+        }
+        logger.info("Usuario {} tiene permiso para unirse a la sala {}", username, salaNombre);
         if (salaOpt.isEmpty()) {
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Sala no existe"));
             return;
@@ -85,40 +100,55 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(@NotNull WebSocketSession session, @NotNull TextMessage message) throws Exception {
-        verificarMensajeConToken(session);
-        String salaDelEmisor = sessionIdToSala.get(session.getId());
+        Boolean verificado = verificarMensajeConToken(session);
+        if(verificado) {
 
 
-        if (salaDelEmisor == null) {
-            logger.warn("Sesión {} no está registrada en ninguna sala", session.getId());
-            session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Sesión no registrada en ninguna sala"));
-            return;
-        }
-        ChatMessage chatMessage = mapper.readValue(message.getPayload(), ChatMessage.class);
-        logger.info("Mensaje recibido: {}", chatMessage.getMensaje());
-        logger.info("Cantidad de bytes del mensaje: {}", message.getPayloadLength());
-        String jsonMessage = mapper.writeValueAsString(chatMessage);
-        Set<WebSocketSession> sesiones = salasSessions.getOrDefault(salaDelEmisor, Collections.emptySet());
 
-        Iterator<WebSocketSession> it = sesiones.iterator();
-        while (it.hasNext()) {
-            WebSocketSession s = it.next();
-            if (!s.isOpen()) {
-                it.remove();
-                continue;
+            String salaDelEmisor = sessionIdToSala.get(session.getId());
+
+
+            if (salaDelEmisor == null) {
+                logger.warn("Sesión {} no está registrada en ninguna sala", session.getId());
+                session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Sesión no registrada en ninguna sala"));
+                return;
+            }
+            ChatMessageDTO chatMessageDTO = mapper.readValue(message.getPayload(), ChatMessageDTO.class);
+            logger.info("Mensaje recibido: {}", chatMessageDTO.getMensaje());
+            logger.info("Cantidad de bytes del mensaje: {} Bytes", message.getPayloadLength());
+            String jsonMessage = mapper.writeValueAsString(chatMessageDTO);
+            Set<WebSocketSession> sesiones = salasSessions.getOrDefault(salaDelEmisor, Collections.emptySet());
+            //FUking logger de re mierda, no deja imprimir el set de usuarios conectados
+            //Set<String> usuariosConectados = salasSessions.get(salaDelEmisor)
+              //      .stream()
+                //    .map(s -> s.getAttributes().get("username").toString())
+                  //  .collect(Collectors.toSet());
+            //logger.info("Usuarios conectados en la sala {}: {}", salaDelEmisor, usuariosConectados);
+            Iterator<WebSocketSession> it = sesiones.iterator();
+            while (it.hasNext()) {
+                WebSocketSession s = it.next();
+
+                if (!s.isOpen()) {
+                    it.remove();
+                    continue;
+                }
+                if (!s.getId().equals(session.getId())) {
+                    String nombre= (String) s.getAttributes().get("username");
+                    logger.info("Enviando mensaje a la sesión {} del usuario {}", s.getId(), nombre);
+                    s.sendMessage(new TextMessage(jsonMessage));
+                }
             }
 
-            if (!s.getId().equals(session.getId()) ) {
 
-                s.sendMessage(new TextMessage(jsonMessage));
-            }
+            long start = System.currentTimeMillis();
+            guardarMensaje(salaDelEmisor, chatMessageDTO.getUsuario(), chatMessageDTO.getMensaje(), timestamp);
+            long end = System.currentTimeMillis();
+            logger.info("Mensaje guardado en la base de datos en {} ms", (end - start));
         }
-
-        long start= System.currentTimeMillis();
-        guardarMensaje(salaDelEmisor, chatMessage.getUsuario(), chatMessage.getMensaje(), timestamp);
-        long end = System.currentTimeMillis();
-        logger.info("Mensaje guardado en la base de datos en {} ms", (end - start));
-
+        else {
+            logger.warn("Token no válido o no proporcionado en la sesión {}", session.getId());
+            session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Token no válido o no proporcionado"));
+        }
     }
 
 
@@ -141,8 +171,24 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             }
         }
     }
-    public void verificarMensajeConToken(WebSocketSession session) throws IOException {
-        URI uri = session.getUri();
+    public Boolean verificarMensajeConToken(WebSocketSession session) {
+
+        logger.info("Sesion con token header: {}" ,session.getHandshakeHeaders().get("Authorization"));
+        if (session.getHandshakeHeaders().get("Authorization") == null) {
+            logger.warn("No se encontró el header Authorization en la sesión WebSocket");
+
+            return false;
+        }
+        String tokenHeader = Objects.requireNonNull(session.getHandshakeHeaders().get("Authorization")).getFirst();
+        if (!tokenHeader.startsWith("Bearer ")) {
+            logger.warn("Token no proporcionado en el header Authorization");
+            return false;
+        }
+        String token = tokenHeader.substring("Bearer ".length());
+        logger.info("Token obtenido en la solicitud de mensaje: {}", token);
+
+        //Como estaba antes
+        /**URI uri = session.getUri();
         logger.info("URI de la sesión WebSocket: {}", uri);
         assert uri != null;
         String query = uri.getQuery();
@@ -153,33 +199,31 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             for (String param : query.split("&")) {
                 if (param.startsWith("token=")) {
                     token = param.substring("token=".length());
-                    logger.info("Token obtenido de la solicitud WebSocket: {}", token);
+                    logger.info("Token obtenido en la solicitud de mensaje: {}", token);
                     break;
                 }
             }
-        }
-        if (token == null || token.isEmpty()) {
+        }*/
+        if (token.isEmpty()) {
             logger.warn("Token no proporcionado en el mensaje WebSocket");
-            session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Token no proporcionado"));
+
+            return false;
         }
 
         if (!jwtService.isValidTokenFormat(token) || !jwtService.isTokenStored(token)) {
-            logger.warn("Token no valido en la solicitud WebSocket");
-            session.close(CloseStatus.POLICY_VIOLATION.withReason("Token no válido o no almacenado") );
-
-
+            logger.warn("Token no valido en la solicitud de mensaje");
+            return false;
         }
-        logger.info("Token válido en la solicitud WebSocket: {}", token);
-
+        logger.info("Token válido en la solicitud de mensaje: {}", token);
+        return true;
     }
     public void guardarMensaje(String salaDelEmisor, String usuario, String mensaje, Timestamp timestamp) {
-
         try {
             SalaChat salaChat = salaChatRepo.findByNombre(salaDelEmisor)
                     .orElseThrow(() -> new IllegalArgumentException("Sala no encontrada: " + salaDelEmisor));
 
 
-            com.project.minimercado.model.chat.ChatMessage chatMessage = new com.project.minimercado.model.chat.ChatMessage();
+            ChatMessage chatMessage = new ChatMessage();
             chatMessage.setSala(salaChat);
             chatMessage.setUsuario(usuarioRepo.findByNombreas(usuario)
                     .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + usuario)));

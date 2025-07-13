@@ -21,7 +21,7 @@ import java.util.function.Function;
 public class JWTService {
 
     Cache<String, Boolean> tokeninhash = Caffeine.newBuilder()
-            .expireAfterWrite(15, TimeUnit.MINUTES)
+            .expireAfterWrite( 30, TimeUnit.MINUTES)
             .maximumSize(1000)
             .build();
 
@@ -134,8 +134,6 @@ public class JWTService {
             System.out.println("Token con comillas detectado, eliminando comillas...");
             token = token.trim().replace("\"", "");
         }
-
-
         System.out.println("Invalidando token: [" + token + "]");
         System.out.println("Hash: " + token.hashCode());
 
@@ -153,10 +151,9 @@ public class JWTService {
     public boolean isTokenStored(String token) {
 
         if (token == null || token.isEmpty()) {
-            System.out.println("Token is null or empty");
+            System.out.println("Token no puede ser nulo o vacío");
             return false;
         }
-
         return tokeninhash.get(token, k -> false);
     }
 

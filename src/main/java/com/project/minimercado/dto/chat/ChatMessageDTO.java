@@ -5,14 +5,14 @@ import lombok.Setter;
 
 @Setter
 
-public class ChatMessage {
+public class ChatMessageDTO {
     private String usuario;
     private String mensaje;
 
-    public ChatMessage() {
+    public ChatMessageDTO() {
     }  // Para Jackson si usás JSON
 
-    public ChatMessage(String usuario, String mensaje) {
+    public ChatMessageDTO(String usuario, String mensaje) {
         this.usuario = usuario;
         this.mensaje = mensaje;
     }

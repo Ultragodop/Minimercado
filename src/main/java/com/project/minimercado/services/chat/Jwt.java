@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -30,15 +31,28 @@ public class Jwt implements HandshakeInterceptor {
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, @NotNull ServerHttpResponse response,
                                    @NotNull WebSocketHandler wsHandler, @NotNull Map<String, Object> attributes) throws IOException {
-
-        ServletServerHttpResponse servletResp = (ServletServerHttpResponse) response;
-        HttpServletResponse resp = servletResp.getServletResponse();;
-        URI uri = request.getURI();
-        String query = uri.getQuery();
-        logger.info("JWT query: " + query);
         String token = null;
+        ServletServerHttpResponse servletResp = (ServletServerHttpResponse) response;
+        HttpServletResponse resp = servletResp.getServletResponse();
+        HttpHeaders requestToken= request.getHeaders();
+        for (String headerName : requestToken.keySet()) {
+            if( headerName.equalsIgnoreCase("Authorization")) {
+                String authHeader = requestToken.getFirst(headerName);
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    token = authHeader.substring(7);
+                    logger.info("Token obtenido de la cabecera Authorization: {}", token);
+                } else {
+                    logger.warn("Cabecera Authorization no contiene un token válido");
+                }
+            }
+        }
+        //request.getHeaders().forEach((key, value) -> logger.info("Header: {} = {}", key, value));
 
-        if (query != null) {
+
+        //Como estaba antes, se obtiene el token de la URI
+        //Pero esto es más inseguro, ya que el bearer token puede ser expuesto en la URL
+        /**
+         * if (query != null) {
             for (String param : query.split("&")) {
                 if (param.startsWith("token=")) {
                     token = param.substring("token=".length());
@@ -47,7 +61,7 @@ public class Jwt implements HandshakeInterceptor {
                 }
             }
         }
-
+*/
 
         if (token == null || token.isEmpty()) {
             logger.warn("Token no proporcionado en la solicitud WebSocket");
