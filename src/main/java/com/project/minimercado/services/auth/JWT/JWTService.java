@@ -67,11 +67,7 @@ public class JWTService {
 
 
     public boolean validateToken(String token, UserDetailsWithId userDetails) {
-        Boolean isValid = tokeninhash.getIfPresent(token);
-        if (Boolean.FALSE.equals(isValid) || isValid == null) {
-            throw new IllegalArgumentException("No se encontró el token en el cache o el token es inválido");
 
-        }
         System.out.println(" Token encontrado en el mapa");
         if (token == null || token.isEmpty()) {
             throw new IllegalArgumentException("Token cannot be null or empty");
@@ -148,14 +144,7 @@ public class JWTService {
         return "success";
     }
 
-    public boolean isTokenStored(String token) {
 
-        if (token == null || token.isEmpty()) {
-            System.out.println("Token no puede ser nulo o vacío");
-            return false;
-        }
-        return tokeninhash.get(token, k -> false);
-    }
 
 
 }

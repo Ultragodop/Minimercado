@@ -71,7 +71,7 @@ public class Jwt implements HandshakeInterceptor {
             return false;
         }
 
-        if (!jwtService.isValidTokenFormat(token) || !jwtService.isTokenStored(token)) {
+        if (!jwtService.isValidTokenFormat(token)) {
             logger.warn("Token no valido en la solicitud WebSocket");
             resp.sendError(HttpStatus.UNAUTHORIZED.value(), "Token no válido o no almacenado");
 

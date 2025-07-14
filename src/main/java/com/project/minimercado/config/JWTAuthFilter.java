@@ -81,7 +81,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 return;
             }
 
-            if (!jwtService.isTokenStored(jwt) || !jwtService.isValidTokenFormat(jwt)) {
+            if (!jwtService.isValidTokenFormat(jwt)) {
                 sendError(response, "Token invalidado o no existe", HttpServletResponse.SC_FORBIDDEN);
                 return;
             }

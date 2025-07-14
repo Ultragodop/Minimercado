@@ -119,6 +119,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             logger.info("Cantidad de bytes del mensaje: {} Bytes", message.getPayloadLength());
             String jsonMessage = mapper.writeValueAsString(chatMessageDTO);
             Set<WebSocketSession> sesiones = salasSessions.getOrDefault(salaDelEmisor, Collections.emptySet());
+            //definicion de las sesiones de sala a las que se enviara el mensaje
+
+
             //FUking logger de re mierda, no deja imprimir el set de usuarios conectados
             //Set<String> usuariosConectados = salasSessions.get(salaDelEmisor)
               //      .stream()
@@ -215,7 +218,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             return false;
         }
 
-        if (!jwtService.isValidTokenFormat(token) || !jwtService.isTokenStored(token)) {
+        if (!jwtService.isValidTokenFormat(token)) {
             logger.warn("Token no valido en la solicitud de mensaje");
             return false;
         }
