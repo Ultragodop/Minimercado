@@ -43,8 +43,10 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final Map<String , String > salatousuario = new ConcurrentHashMap<>();
     private final Map<String, String> usuarioToken= new ConcurrentHashMap<>();
     private final ObjectMapper mapper = new ObjectMapper();
+    private final Map<String , String > emisorReceptor= new ConcurrentHashMap<>();
     private SalaChatService salaChatService;
     private final JWTService jwtService;
+
     //Una sesion tiene varios atributos, entre ellos el username, url, etc.
     //Por lo que se puede acceder a los atributos de la sesión WebSocket
     //Tambien tiene headers, que son los headers de la solicitud HTTP inicial que despues se convierte en WebSocket: http:// -> ws://
@@ -91,9 +93,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Sala no existe"));
             return;
         }
+
         salasSessions.computeIfAbsent(salaNombre, k -> ConcurrentHashMap.newKeySet()).add(session);
         salatousuario.put(salaNombre, username);
         sessionIdToSala.put(session.getId(), salaNombre);
+        String receptor=salaChatService.permitirmensajeporusuarioyreceptor(salatousuario.get(sessionIdToSala.get(session.getId())));
+        emisorReceptor.put(username, receptor);
     }
 
 
@@ -101,13 +106,13 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(@NotNull WebSocketSession session, @NotNull TextMessage message) throws Exception {
         Boolean verificado = verificarMensajeConToken(session);
-        if(verificado) {
+        String receptor= emisorReceptor.get(salatousuario.get(sessionIdToSala.get(session.getId())));
+        logger.info("El usuario emisor tiene un receptor? {}", receptor != null);
+        logger.info("El receptor del emisor {} es {}", salatousuario.get(sessionIdToSala.get(session.getId())), receptor);
 
-
-
+// demasiados logs
+        if(verificado && receptor!=null) {
             String salaDelEmisor = sessionIdToSala.get(session.getId());
-
-
             if (salaDelEmisor == null) {
                 logger.warn("Sesión {} no está registrada en ninguna sala", session.getId());
                 session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Sesión no registrada en ninguna sala"));
@@ -124,6 +129,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 //    .map(s -> s.getAttributes().get("username").toString())
                   //  .collect(Collectors.toSet());
             //logger.info("Usuarios conectados en la sala {}: {}", salaDelEmisor, usuariosConectados);
+
+
             Iterator<WebSocketSession> it = sesiones.iterator();
             while (it.hasNext()) {
                 WebSocketSession s = it.next();

@@ -15,7 +15,8 @@ import java.util.List;
 
 @Service
 public class SalaChatService {
-
+    int maxusuariosporsala=2; // Chat de 2 usuarios
+    int contador=0;
     private final salaUsuarioRepository salaUsuarioRepository;
     private final UsuarioRepository usuarioRepository;
 
@@ -40,8 +41,13 @@ public class SalaChatService {
         salaChatRepository.save(nuevaSala); // genera ID
 
         List<SalaUsuario> usuariosAutorizados = new ArrayList<>();
-        usuariosAutorizados.add(new SalaUsuario(nuevaSala, creador)); // Agrega el creador como usuario autorizado
+        usuariosAutorizados.add(new SalaUsuario(nuevaSala, creador));// Agrega el creador como usuario autorizado
+
         for (Long idUsuario : request.getUsuariosAutorizadosIds()) {
+            contador++;
+            if (contador > maxusuariosporsala) {
+                throw new RuntimeException("No se pueden agregar más usuarios a la sala. Límite alcanzado.");
+            }
             Usuario usuario = usuarioRepository.findById(idUsuario)
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
@@ -63,9 +69,9 @@ public class SalaChatService {
 
 
     public List<SalaChat> ObtenerTodasPorPermiso(Long usuarioId) {
-        List<SalaChat> salaChats= salaChatRepository.findAll();
-        List<SalaUsuario> salaUsuarios= salaUsuarioRepository.findAll();
-        List<SalaChat> salaswhereuserhaspermission= new ArrayList<>();
+        List<SalaChat> salaChats = salaChatRepository.findAll();
+        List<SalaUsuario> salaUsuarios = salaUsuarioRepository.findAll();
+        List<SalaChat> salaswhereuserhaspermission = new ArrayList<>();
         for (SalaChat salaChat : salaChats) {
             for (SalaUsuario salaUsuario : salaUsuarios) {
                 if (salaUsuario.getSala().getId().equals(salaChat.getId()) &&
@@ -87,6 +93,7 @@ public class SalaChatService {
         return salaswhereuserhaspermission;
 
     }
+
     public boolean PermitirConexionPorSala(Long usuarioId, String salaNombre) {
         List<SalaChat> salaChats = salaChatRepository.findAll();
         List<SalaUsuario> salaUsuarios = salaUsuarioRepository.findAll();
@@ -102,7 +109,20 @@ public class SalaChatService {
         }
         return false;
     }
+public String permitirmensajeporusuarioyreceptor(String emisor){
+    List<SalaUsuario> salaUsuarios = salaUsuarioRepository.findAll();
 
-
+    for (SalaUsuario salaUsuario : salaUsuarios) {
+        if (salaUsuario.getUsuario().getNombre().equals(emisor)) {
+            for(SalaUsuario salaUsuario1 : salaUsuarios){
+                if(salaUsuario1.getSala().getId().equals(salaUsuario.getSala().getId())){
+                    System.out.println("El usuario receptor deberia ser: "+salaUsuario1.getUsuario().getNombre());
+                    return salaUsuario1.getUsuario().getNombre();
+                }
+            }
+        }
+    }
+    return null;
+}
 
 }
