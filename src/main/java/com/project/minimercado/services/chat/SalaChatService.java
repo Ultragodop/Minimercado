@@ -29,7 +29,6 @@ public class SalaChatService {
         this.salaUsuarioRepository = salausuariorepositorys;
     }
 
-
     public SalaChat crearSala(CrearSalaRequest request) {
         SalaChat nuevaSala = new SalaChat();
         nuevaSala.setNombre(request.getNombre());
@@ -38,10 +37,10 @@ public class SalaChatService {
                 .orElseThrow(() -> new RuntimeException("Creador no encontrado"));
 
         nuevaSala.setCreador(creador);
-        salaChatRepository.save(nuevaSala); // genera ID
+        salaChatRepository.save(nuevaSala);
 
         List<SalaUsuario> usuariosAutorizados = new ArrayList<>();
-        usuariosAutorizados.add(new SalaUsuario(nuevaSala, creador));// Agrega el creador como usuario autorizado
+        usuariosAutorizados.add(new SalaUsuario(nuevaSala, creador));
 
         for (Long idUsuario : request.getUsuariosAutorizadosIds()) {
             contador++;
@@ -61,7 +60,7 @@ public class SalaChatService {
 
             usuariosAutorizados.add(su);
         }
-
+        contador=0; //ahi va pq si no, se acumula el contador y no se puede crear una nueva sala (mongolico como no pense en eso)
         salaUsuarioRepository.saveAll(usuariosAutorizados);
 
         return nuevaSala;
@@ -69,21 +68,16 @@ public class SalaChatService {
 
 
     public List<SalaChat> ObtenerTodasPorPermiso(Long usuarioId) {
-        List<SalaChat> salaChats = salaChatRepository.findAll();
+
         List<SalaUsuario> salaUsuarios = salaUsuarioRepository.findAll();
         List<SalaChat> salaswhereuserhaspermission = new ArrayList<>();
-        for (SalaChat salaChat : salaChats) {
-            for (SalaUsuario salaUsuario : salaUsuarios) {
-                if (salaUsuario.getSala().getId().equals(salaChat.getId()) &&
-                        salaUsuario.getUsuario().getId().equals(usuarioId)) {
-
-                    salaswhereuserhaspermission.add(salaChat);
-                    System.out.println(salaUsuario.getSala().getNombre() + " tiene permiso para el usuario: " + salaUsuario.getUsuario().getNombre());
+            for (SalaUsuario salaUsuario : salaUsuarios){
+                if (salaUsuario.getUsuario().getId().equals(usuarioId)) {
+                    salaswhereuserhaspermission.add(salaUsuario.getSala());
                 }
-            }
         }
         if (salaswhereuserhaspermission.isEmpty()) {
-            System.out.println("No tienes permisos para ninguna sala");
+            System.out.println("No tiene fukin permisos para ninguna sala");
         } else {
             System.out.println("Tienes permisos para las siguientes salas:");
             for (SalaChat sala : salaswhereuserhaspermission) {
@@ -95,25 +89,34 @@ public class SalaChatService {
     }
 
     public boolean PermitirConexionPorSala(Long usuarioId, String salaNombre) {
-        List<SalaChat> salaChats = salaChatRepository.findAll();
         List<SalaUsuario> salaUsuarios = salaUsuarioRepository.findAll();
-        for (SalaChat salaChat : salaChats) {
-            if (salaChat.getNombre().equals(salaNombre)) {
-                for (SalaUsuario salaUsuario : salaUsuarios) {
-                    if (salaUsuario.getSala().getId().equals(salaChat.getId()) &&
-                            salaUsuario.getUsuario().getId().equals(usuarioId)) {
-                        return true;
-                    }
+        for (SalaUsuario salaUsuario : salaUsuarios) {
+            if(salaUsuario.getUsuario().getId().equals(usuarioId)){
+                if (salaUsuario.getSala().getNombre().equals(salaNombre)) {
+                    System.out.println("El usuario " + salaUsuario.getUsuario().getNombre() + " tiene permiso para conectarse a la sala " + salaNombre);
+                    return true;
+                } else {
+                    System.out.println("El usuario " + salaUsuario.getUsuario().getNombre() + " no tiene permiso para conectarse a la sala " + salaNombre);
                 }
-            }
+            } //mejoras en la optimizacion de la busqueda, antes 2 busquedas, ahora solo una :D
         }
-        return false;
+                return false;
     }
-public String permitirmensajeporusuarioyreceptor(String emisor){
+    /**
+     * Encuentra el usuario receptor en una sala de chat. toma mira camilo, una sola bosqueda a la base de datos
+     * @param emisor El nombre del usuario emisor.
+     * @param salaNombre El nombre de la sala de chat.
+     * @return El nombre del usuario receptor o null si no se encuentra.
+     */
+public String encontrarusuarioreceptor(String emisor, String salaNombre){
     List<SalaUsuario> salaUsuarios = salaUsuarioRepository.findAll();
-
+    //primero se busca la relacion donde el emisor es el usuario y la sala es la salaNombre
+    //luego se busca el usuario receptor que es el otro usuario de la sala
+    //se retorna el nombre del usuario receptor
+    // si no se encuentra el usuario receptor || no se encuentra la sala correspondiente a la sala, se retorna null
+    // negro de mierda kaka negro de mierda
     for (SalaUsuario salaUsuario : salaUsuarios) {
-        if (salaUsuario.getUsuario().getNombre().equals(emisor)) {
+        if (salaUsuario.getUsuario().getNombre().equals(emisor) && salaUsuario.getSala().getNombre().equals(salaNombre))  {
             for(SalaUsuario salaUsuario1 : salaUsuarios){
                 if(salaUsuario1.getSala().getId().equals(salaUsuario.getSala().getId())){
                     System.out.println("El usuario receptor deberia ser: "+salaUsuario1.getUsuario().getNombre());

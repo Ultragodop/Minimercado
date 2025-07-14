@@ -21,12 +21,9 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import java.io.IOException;
-
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
@@ -95,13 +92,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
 
         salasSessions.computeIfAbsent(salaNombre, k -> ConcurrentHashMap.newKeySet()).add(session);
+
         salatousuario.put(salaNombre, username);
         sessionIdToSala.put(session.getId(), salaNombre);
-        String receptor=salaChatService.permitirmensajeporusuarioyreceptor(salatousuario.get(sessionIdToSala.get(session.getId())));
+        String receptor=salaChatService.encontrarusuarioreceptor(salatousuario.get(sessionIdToSala.get(session.getId())), sessionIdToSala.get(session.getId()));
         emisorReceptor.put(username, receptor);
     }
-
-
 
     @Override
     protected void handleTextMessage(@NotNull WebSocketSession session, @NotNull TextMessage message) throws Exception {
@@ -110,7 +106,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         logger.info("El usuario emisor tiene un receptor? {}", receptor != null);
         logger.info("El receptor del emisor {} es {}", salatousuario.get(sessionIdToSala.get(session.getId())), receptor);
 
-// demasiados logs
+    // demasiados logs fucking inutiles, pero bueno, asi se aprende
         if(verificado && receptor!=null) {
             String salaDelEmisor = sessionIdToSala.get(session.getId());
             if (salaDelEmisor == null) {
@@ -130,7 +126,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                   //  .collect(Collectors.toSet());
             //logger.info("Usuarios conectados en la sala {}: {}", salaDelEmisor, usuariosConectados);
 
-
+            //Iterator una interfaz de java que permite recorrer una colección de objetos
+            //Collection es una interfaz que representa una colección de objetos
+            //Set es una colección que no permite elementos duplicados :D
             Iterator<WebSocketSession> it = sesiones.iterator();
             while (it.hasNext()) {
                 WebSocketSession s = it.next();

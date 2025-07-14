@@ -10,5 +10,5 @@ import org.springframework.stereotype.Repository;
 public interface salaUsuarioRepository extends JpaRepository<SalaUsuario, Integer> {
     boolean existsBySalaAndUsuario(SalaChat sala, Usuario usuario);
 
-    Usuario findAllBySala(SalaChat sala);
+
 }
