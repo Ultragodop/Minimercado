@@ -7,6 +7,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.stereotype.Service;
@@ -18,9 +19,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+@Slf4j
 @Service
 public class JWTService {
-    RedisTokenService redisTokenService;
+
+    private final RedisTokenService redisTokenService;
 
     //Esto es una mala practica ya que hardcodea la jwt secret key
     @Value("${jwt.secret}")
@@ -29,6 +32,10 @@ public class JWTService {
     private long jwtExpiration;
 
     private SecretKey key;
+
+    public JWTService(RedisTokenService redisTokenService) {
+        this.redisTokenService = redisTokenService;
+    }
 
 
     @PostConstruct
@@ -56,7 +63,11 @@ public class JWTService {
         System.out.println(claims);
         String token = createToken(claims, username);
         System.out.println(token);
-        redisTokenService.saveToken(token, Duration.ofMinutes(30));
+        try {
+            redisTokenService.saveToken(token, Duration.ofMinutes(30));
+        } catch (Exception e) {
+         System.out.println("Error al guardar el token en Redis: " + e.getMessage());
+        }
         return token;
     }
 
