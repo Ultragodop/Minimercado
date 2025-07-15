@@ -78,6 +78,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
         logger.info("Usuario {} conectado a la sala {}", username, salaNombre);
         Optional<SalaChat> salaOpt = salaChatRepo.findByNombre(salaNombre);
+        if (salaOpt.isEmpty()) {
+            logger.warn("Sala {} no encontrada", salaNombre);
+            session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Sala no encontrada"));
+            return;
+        }
+
         long id= usuarioRepo.getIdUsuario(username);
         boolean permitir= salaChatService.PermitirConexionPorSala(id , salaNombre);
         if(!permitir) {
@@ -86,10 +92,6 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             return;
         }
         logger.info("Usuario {} tiene permiso para unirse a la sala {}", username, salaNombre);
-        if (salaOpt.isEmpty()) {
-            session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Sala no existe"));
-            return;
-        }
 
         salasSessions.computeIfAbsent(salaNombre, k -> ConcurrentHashMap.newKeySet()).add(session);
 
@@ -214,11 +216,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }*/
         if (token.isEmpty()) {
             logger.warn("Token no proporcionado en el mensaje WebSocket");
-
             return false;
         }
-
-        if (!jwtService.isValidTokenFormat(token)) {
+        if (!jwtService.isValidTokenFormat(token) || !jwtService.isTokenStored(token)) {
             logger.warn("Token no valido en la solicitud de mensaje");
             return false;
         }

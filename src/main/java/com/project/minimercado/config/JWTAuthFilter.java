@@ -81,8 +81,8 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 return;
             }
 
-            if (!jwtService.isValidTokenFormat(jwt)) {
-                sendError(response, "Token invalidado o no existe", HttpServletResponse.SC_FORBIDDEN);
+            if (!jwtService.isValidTokenFormat(jwt) || !jwtService.isTokenStored(jwt)) {
+                sendError(response, "Token invalidado", HttpServletResponse.SC_FORBIDDEN);
                 return;
             }
 
@@ -99,12 +99,9 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 if (!jwtService.validateToken(jwt, userDetails)) {
                     sendError(response, "Token expirado o invalidado", HttpServletResponse.SC_UNAUTHORIZED);
                 }
-
-
                 setAuthentication(userDetails, request);
             }
             filterChain.doFilter(request, response);
-
         } catch (JwtException | AuthenticationException e) {
             sendError(response, "Authentication error: " + e.getMessage(), HttpServletResponse.SC_UNAUTHORIZED);
         } catch (Exception e) {

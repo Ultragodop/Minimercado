@@ -44,6 +44,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
+
                         .requestMatchers("/v3/**").permitAll()
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/salas/crear").permitAll()
@@ -57,7 +58,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/categorias/**").hasAnyRole("ADMIN", "INVENTARIO")
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/chat/**").permitAll()
-
                         .anyRequest().authenticated()
                 )
 

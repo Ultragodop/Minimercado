@@ -31,7 +31,7 @@ public class MyUsrDtlsService implements UserDetailsServiceWithId {
         long endTime = System.currentTimeMillis();
         System.out.println("Tiempo de busqueda de usuario: " + (endTime - startTime) + "ms");
 
-        // Si no se encuentra el usuario, lanzamos fuckin una excepción
+        // Si no se encuentra el usuario, lanzamos una fuckin excepción
 
         if (usuario == null) {
             throw new UsernameNotFoundException("Nombre no encontrado: " + username);

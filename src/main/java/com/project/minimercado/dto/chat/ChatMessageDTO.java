@@ -10,7 +10,7 @@ public class ChatMessageDTO {
     private String mensaje;
 
     public ChatMessageDTO() {
-    }  // Para Jackson si usás JSON
+    }
 
     public ChatMessageDTO(String usuario, String mensaje) {
         this.usuario = usuario;

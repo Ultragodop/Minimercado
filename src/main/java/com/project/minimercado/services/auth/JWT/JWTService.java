@@ -8,23 +8,19 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.time.Duration;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 @Service
 public class JWTService {
-
-    Cache<String, Boolean> tokeninhash = Caffeine.newBuilder()
-            .expireAfterWrite( 30, TimeUnit.MINUTES)
-            .maximumSize(1000)
-            .build();
-
+    RedisTokenService redisTokenService;
 
     //Esto es una mala practica ya que hardcodea la jwt secret key
     @Value("${jwt.secret}")
@@ -60,26 +56,30 @@ public class JWTService {
         System.out.println(claims);
         String token = createToken(claims, username);
         System.out.println(token);
-
-        tokeninhash.put(token, true);
+        redisTokenService.saveToken(token, Duration.ofMinutes(30));
         return token;
     }
 
 
     public boolean validateToken(String token, UserDetailsWithId userDetails) {
+        if(redisTokenService.isTokenValid(token)) {
+            System.out.println("Token encontrado");
+            if (token == null || token.isEmpty()) {
+                throw new IllegalArgumentException("Token cannot be null or empty");
+            }
+            if (extractExpiration(token).before(new Date())) {
+                return false;
+            }
+        }
 
-        System.out.println(" Token encontrado en el mapa");
-        if (token == null || token.isEmpty()) {
-            throw new IllegalArgumentException("Token cannot be null or empty");
-        }
-        if (extractExpiration(token).before(new Date())) {
-            return false;
-        }
-        try {
-            final String username = extractUsername(token);
-            System.out.println("Username extraído del token: " + username);
-            return username.equals(userDetails.getUsername()) && isValidTokenFormat(token);
-        } catch (Exception e) {
+            try {
+                final String username = extractUsername(token);
+                System.out.println("Username extraído del token: " + username);
+                return username.equals(userDetails.getUsername()) && isValidTokenFormat(token);
+
+            }
+
+        catch (Exception e) {
             return false;
         }
     }
@@ -97,8 +97,6 @@ public class JWTService {
             return false;
         }
     }
-
-
     protected String createToken(Map<String, Object> claims, String subject) {
         System.out.println(claims + subject);
         return Jwts.builder()
@@ -112,11 +110,9 @@ public class JWTService {
                 .compact();
 
     }
-
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
-
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .verifyWith(key)
@@ -124,27 +120,38 @@ public class JWTService {
                 .parseSignedClaims(token)
                 .getPayload();
     }
-
     public String InvalidateToken(String token) {
+        if(token == null || token.isEmpty()) {
+            throw new IllegalArgumentException("Token cannot be null or empty");
+        }
         if(token.startsWith("\"") && token.endsWith("\"")) {
             System.out.println("Token con comillas detectado, eliminando comillas...");
             token = token.trim().replace("\"", "");
         }
-        System.out.println("Invalidando token: [" + token + "]");
-        System.out.println("Hash: " + token.hashCode());
-
-        if (tokeninhash.getIfPresent(token) == null) {
-            System.out.println("Token no encontrado en el mapa");
+        if(!isValidTokenFormat(token)) {
+            System.out.println("Token no válido o no almacenado: " + token);
             return "error";
         }
-
-
-        tokeninhash.put(token, false);
-        System.out.println("Token invalidado correctamente");
+        System.out.println("Invalidando token: [" + token + "]");
+        redisTokenService.revokeToken(token);
         return "success";
+        }
+    public boolean isTokenStored(String token) {
+        if(token == null || token.isEmpty()) {
+            throw new IllegalArgumentException("Token cannot be null or empty");
+        }
+        if(token.startsWith("\"") && token.endsWith("\"")) {
+            System.out.println("Token con comillas detectado, eliminando comillas...");
+            token = token.trim().replace("\"", "");
+        }
+        return redisTokenService.isTokenValid(token);
     }
 
 
 
 
-}
+    }
+
+
+
+
