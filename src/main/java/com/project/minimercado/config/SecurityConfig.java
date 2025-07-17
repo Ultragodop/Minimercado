@@ -3,20 +3,27 @@ package com.project.minimercado.config;
 
 import com.project.minimercado.services.auth.MyUsrDtlsService;
 import com.project.minimercado.utils.DaoAuthenticationProviderWithId;
+import com.project.minimercado.utils.UserDetailsServiceWithId;
+import com.project.minimercado.utils.UserDetailsWithId;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.annotation.web.configurers.RememberMeConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -29,20 +36,17 @@ import java.util.Arrays;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
     private final JWTAuthFilter jwtAuthFilter;
     private final MyUsrDtlsService userDetailsService;
-
+    private final CustomOAuth2LoginSuccessHandler loginSuccessHandler;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-
                 .csrf(AbstractHttpConfigurer::disable)
-
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-
                         .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/login/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/v3/**").permitAll()
                         .requestMatchers("/api/auth/logout").permitAll()
@@ -56,11 +60,17 @@ public class SecurityConfig {
                         .requestMatchers("/api/facturacion/**").hasAnyRole("ADMIN", "VENTAS")
                         .requestMatchers("/api/categorias/**").hasAnyRole("ADMIN", "INVENTARIO")
                         .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("api/mascotas/historial/**").hasAnyRole("ADMINVETERINARIA", "ADMINREFUGIO", "USUARIOADOPT_HIST_VET")
                         .requestMatchers("/chat/**").permitAll()
+                        .requestMatchers("/oauth2/callback/*").permitAll()
+                        .requestMatchers("/oauth2/**").permitAll()
                         .anyRequest().authenticated()
                 )
-
-
+                .oauth2Login(oauth2 -> oauth2
+                        .authorizationEndpoint(endpoint -> endpoint.baseUri("/oauth2/authorization"))
+                        .redirectionEndpoint(endpoint -> endpoint.baseUri("/login/oauth2/code/*"))
+                        .successHandler(loginSuccessHandler)
+                )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
@@ -71,8 +81,6 @@ public class SecurityConfig {
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
-
         return http.build();
     }
 
@@ -123,7 +131,6 @@ public class SecurityConfig {
 
         return source;
     }
-
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProviderWithId authProvider = new DaoAuthenticationProviderWithId();
@@ -133,6 +140,7 @@ public class SecurityConfig {
 
         return authProvider;
     }
+
 
 
     @Bean
