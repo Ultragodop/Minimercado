@@ -9,6 +9,7 @@ import com.project.minimercado.repository.bussines.UsuarioRepository;
 import com.project.minimercado.repository.chat.ChatMessageRepository;
 import com.project.minimercado.repository.chat.SalaChatRepository;
 import com.project.minimercado.services.auth.JWT.JWTService;
+import com.project.minimercado.services.chat.EncryptionUtils;
 import com.project.minimercado.services.chat.SalaChatService;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -116,8 +117,11 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Sesión no registrada en ninguna sala"));
                 return;
             }
+
             ChatMessageDTO chatMessageDTO = mapper.readValue(message.getPayload(), ChatMessageDTO.class);
             logger.info("Mensaje recibido: {}", chatMessageDTO.getMensaje());
+
+
             logger.info("Cantidad de bytes del mensaje: {} Bytes", message.getPayloadLength());
             String jsonMessage = mapper.writeValueAsString(chatMessageDTO);
             Set<WebSocketSession> sesiones = salasSessions.getOrDefault(salaDelEmisor, Collections.emptySet());
@@ -160,6 +164,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Token no válido o no proporcionado"));
         }
     }
+
 
 
     @Override
@@ -226,6 +231,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         return true;
     }
     public void guardarMensaje(String salaDelEmisor, String usuario, String mensaje, Timestamp timestamp) {
+
+
         try {
             SalaChat salaChat = salaChatRepo.findByNombre(salaDelEmisor)
                     .orElseThrow(() -> new IllegalArgumentException("Sala no encontrada: " + salaDelEmisor));
@@ -235,7 +242,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             chatMessage.setSala(salaChat);
             chatMessage.setUsuario(usuarioRepo.findByNombreas(usuario)
                     .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + usuario)));
-            chatMessage.setMensaje(mensaje);
+
             chatMessage.setTimestamp(timestamp.toLocalDateTime());
             chatRepository.save(chatMessage);
         }catch (Exception e)
