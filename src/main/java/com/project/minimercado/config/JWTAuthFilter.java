@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class JWTAuthFilter extends OncePerRequestFilter {
     private final JWTService jwtService;
+
     private final UserDetailsServiceWithId userDetailsService;
     private Cache<String, UserDetailsWithId> userDetailsCache;
     private ExecutorService authExecutor;

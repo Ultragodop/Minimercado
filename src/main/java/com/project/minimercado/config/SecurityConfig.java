@@ -6,6 +6,7 @@ import com.project.minimercado.utils.DaoAuthenticationProviderWithId;
 import com.project.minimercado.utils.UserDetailsServiceWithId;
 import com.project.minimercado.utils.UserDetailsWithId;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,12 +33,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JWTAuthFilter jwtAuthFilter;
     private final MyUsrDtlsService userDetailsService;
+    private final LoggingFilter logginFilter;
     private final CustomOAuth2LoginSuccessHandler loginSuccessHandler;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -62,7 +65,8 @@ public class SecurityConfig {
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("api/mascotas/historial/**").hasAnyRole("ADMINVETERINARIA", "ADMINREFUGIO", "USUARIOADOPT_HIST_VET")
                         .requestMatchers("/chat/**").permitAll()
-                        .requestMatchers("/oauth2/callback/*").permitAll()
+                        .requestMatchers("oauth2/**").permitAll()
+                        .requestMatchers("/oauth2/callback/**").permitAll()
                         .requestMatchers("/oauth2/**").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -71,6 +75,7 @@ public class SecurityConfig {
                         .redirectionEndpoint(endpoint -> endpoint.baseUri("/login/oauth2/code/*"))
                         .successHandler(loginSuccessHandler)
                 )
+
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
@@ -80,7 +85,11 @@ public class SecurityConfig {
                         .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'"))
                 )
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                //TODO
+                // LoggingFilter & Filtro de analisis de comportamiento de usuarios
+
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class).addFilterBefore(logginFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 

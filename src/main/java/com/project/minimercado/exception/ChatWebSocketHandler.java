@@ -8,6 +8,7 @@ import com.project.minimercado.model.chat.SalaChat;
 import com.project.minimercado.repository.bussines.UsuarioRepository;
 import com.project.minimercado.repository.chat.ChatMessageRepository;
 import com.project.minimercado.repository.chat.SalaChatRepository;
+import com.project.minimercado.services.Redis.RedisService;
 import com.project.minimercado.services.auth.JWT.JWTService;
 import com.project.minimercado.services.chat.EncryptionUtils;
 import com.project.minimercado.services.chat.SalaChatService;
@@ -22,6 +23,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,13 +34,14 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private ChatMessageRepository chatRepository;
     private static final Logger logger = LoggerFactory.getLogger(ChatWebSocketHandler.class);
     private final SalaChatRepository salaChatRepo;
-
+    private final RedisService redisService;
     private final UsuarioRepository usuarioRepo;
     private final ChatMessageRepository chatMessageRepository;
     private final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
     private final Map<String, Set<WebSocketSession>> salasSessions = new ConcurrentHashMap<>();
    private final Map<String, String> sessionIdToSala = new ConcurrentHashMap<>();
     private final Map<String , String > salatousuario = new ConcurrentHashMap<>();
+    private final Map<String, WebSocketSession> sessionIdToUsuario= new ConcurrentHashMap<>();
     private final Map<String, String> usuarioToken= new ConcurrentHashMap<>();
     private final ObjectMapper mapper = new ObjectMapper();
     private final Map<String , String > emisorReceptor= new ConcurrentHashMap<>();
@@ -71,6 +74,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Ruta no válida"));
             return;
         }
+      sessionIdToUsuario.put(username, session);
 
         String salaNombre = path.substring(path.lastIndexOf("/") + 1);
         if (salaNombre.isEmpty()) {
@@ -117,6 +121,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Sesión no registrada en ninguna sala"));
                 return;
             }
+
 
             ChatMessageDTO chatMessageDTO = mapper.readValue(message.getPayload(), ChatMessageDTO.class);
             logger.info("Mensaje recibido: {}", chatMessageDTO.getMensaje());
@@ -185,6 +190,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 logger.info("Sala '{}' vacía, eliminada del registro.", sala);
             }
         }
+
     }
     public Boolean verificarMensajeConToken(WebSocketSession session) {
 
@@ -252,6 +258,26 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
 
     }
+    //TODO: Poner el usuario que recibe el mensaje en los atributos de rawJsonMessage  fuckin mierda
+    public void sendMessageToUser(String username, String rawJsonMessage) {
+        WebSocketSession session = sessionIdToUsuario.get(username);
+        if (session != null && session.isOpen()) {
+            try {
+                session.sendMessage(new TextMessage(rawJsonMessage));
+                logger.info("Mensaje enviado a cliente {} desde la instancia {}", username, System.getProperty("spring.application.name"));
+            } catch (IOException e) {
 
+
+                logger.info("Error enviando mensaje a usuario {} (conexión rota): {}", username, e.getMessage());
+
+                sessionIdToUsuario.remove(username);
+            }
+        } else {
+
+            logger.info("Usuario {} no está conectado a esta instancia ({}). Mensaje no enviado directamente.", username, System.getProperty("spring.application.name"));
+        }
+    }
 }
+
+
 

@@ -1,7 +1,6 @@
 package com.project.minimercado.services.auth.JWT;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import com.project.minimercado.services.Redis.RedisService;
 import com.project.minimercado.utils.UserDetailsWithId;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -9,7 +8,6 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -23,7 +21,7 @@ import java.util.function.Function;
 @Service
 public class JWTService {
 
-    private final RedisTokenService redisTokenService;
+    private final RedisService redisService;
 
     //Esto es una mala practica ya que hardcodea la jwt secret key
     @Value("${jwt.secret}")
@@ -33,8 +31,8 @@ public class JWTService {
 
     private SecretKey key;
 
-    public JWTService(RedisTokenService redisTokenService) {
-        this.redisTokenService = redisTokenService;
+    public JWTService(RedisService redisService) {
+        this.redisService = redisService;
     }
 
 
@@ -64,7 +62,7 @@ public class JWTService {
         String token = createToken(claims, username);
         System.out.println(token);
         try {
-            redisTokenService.saveToken(token, Duration.ofMinutes(30));
+            redisService.saveToken(token, Duration.ofMinutes(30));
         } catch (Exception e) {
          System.out.println("Error al guardar el token en Redis: " + e.getMessage());
         }
@@ -73,7 +71,7 @@ public class JWTService {
 
 
     public boolean validateToken(String token, UserDetailsWithId userDetails) {
-        if(redisTokenService.isTokenValid(token)) {
+        if(redisService.isTokenValid(token)) {
             System.out.println("Token encontrado");
             if (token == null || token.isEmpty()) {
                 throw new IllegalArgumentException("Token cannot be null or empty");
@@ -144,7 +142,7 @@ public class JWTService {
             return "error";
         }
         System.out.println("Invalidando token: [" + token + "]");
-        redisTokenService.revokeToken(token);
+        redisService.revokeToken(token);
         return "success";
         }
     public boolean isTokenStored(String token) {
@@ -155,7 +153,7 @@ public class JWTService {
             System.out.println("Token con comillas detectado, eliminando comillas...");
             token = token.trim().replace("\"", "");
         }
-        return redisTokenService.isTokenValid(token);
+        return redisService.isTokenValid(token);
     }
 
 

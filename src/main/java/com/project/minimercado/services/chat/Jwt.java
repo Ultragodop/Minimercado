@@ -79,7 +79,6 @@ public class Jwt implements HandshakeInterceptor {
         }
         logger.info("Token válido en la solicitud WebSocket: {}", token);
 
-
         attributes.put("token", token);
         logger.info("JWT validado en la solicitud WebSocket");
         attributes.put("username", jwtService.extractUsername(token));

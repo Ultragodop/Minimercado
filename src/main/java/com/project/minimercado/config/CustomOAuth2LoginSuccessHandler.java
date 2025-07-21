@@ -24,11 +24,11 @@ import java.util.Map;
 public class CustomOAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 private final Logger logger = LoggerFactory.getLogger(CustomOAuth2LoginSuccessHandler.class);
     private final JWTService jwtService;
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final UsuarioRepository usuarioRepository;
-    public CustomOAuth2LoginSuccessHandler(JWTService jwtService, UsuarioRepository usuarioRepository)  {
+
+
+    public CustomOAuth2LoginSuccessHandler(JWTService jwtService)  {
         this.jwtService = jwtService;
-        this.usuarioRepository = usuarioRepository;
+
     }
 
     @Override
@@ -48,7 +48,7 @@ private final Logger logger = LoggerFactory.getLogger(CustomOAuth2LoginSuccessHa
             logger.info("Token generado: {}" , jwt);
 
 
-            String frontendRedirectUrl = "http://localhost:3050/";
+            String frontendRedirectUrl = "http://localhost:3050/api/auth/login";
             String redirectUrl = frontendRedirectUrl + "#token=" + URLEncoder.encode(jwt, StandardCharsets.UTF_8);
             response.sendRedirect(redirectUrl);
 
