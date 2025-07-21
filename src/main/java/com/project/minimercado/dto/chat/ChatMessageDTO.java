@@ -8,8 +8,24 @@ import lombok.Setter;
 public class ChatMessageDTO {
     private String usuario;
     private String mensaje;
-
+    private String sala;
     public ChatMessageDTO() {
+    }
+
+    public void setUsuario(String usuario) {
+        this.usuario = usuario;
+    }
+
+    public String getSala() {
+        return sala;
+    }
+
+    public void setSala(String sala) {
+        this.sala = sala;
+    }
+
+    public void setMensaje(String mensaje) {
+        this.mensaje = mensaje;
     }
 
     public ChatMessageDTO(String usuario, String mensaje) {

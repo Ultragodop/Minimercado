@@ -17,6 +17,8 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -47,6 +49,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final Map<String , String > emisorReceptor= new ConcurrentHashMap<>();
     private SalaChatService salaChatService;
     private final JWTService jwtService;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final ChannelTopic websocketMessagesTopic;
 
     //Una sesion tiene varios atributos, entre ellos el username, url, etc.
     //Por lo que se puede acceder a los atributos de la sesión WebSocket
@@ -130,6 +134,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             logger.info("Cantidad de bytes del mensaje: {} Bytes", message.getPayloadLength());
             String jsonMessage = mapper.writeValueAsString(chatMessageDTO);
             Set<WebSocketSession> sesiones = salasSessions.getOrDefault(salaDelEmisor, Collections.emptySet());
+            redisTemplate.convertAndSend(websocketMessagesTopic.getTopic(), jsonMessage);
             //definicion de las sesiones de sala a las que se enviara el mensaje
 
 
@@ -260,21 +265,47 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     }
     //TODO: Poner el usuario que recibe el mensaje en los atributos de rawJsonMessage  fuckin mierda
     public void sendMessageToUser(String username, String rawJsonMessage) {
-        WebSocketSession session = sessionIdToUsuario.get(username);
-        if (session != null && session.isOpen()) {
-            try {
-                session.sendMessage(new TextMessage(rawJsonMessage));
-                logger.info("Mensaje enviado a cliente {} desde la instancia {}", username, System.getProperty("spring.application.name"));
-            } catch (IOException e) {
+        try {
 
+            ChatMessageDTO chatMessageDTO = mapper.readValue(rawJsonMessage, ChatMessageDTO.class);
+            String targetSala = chatMessageDTO.getSala();
 
-                logger.info("Error enviando mensaje a usuario {} (conexión rota): {}", username, e.getMessage());
-
-                sessionIdToUsuario.remove(username);
+            if (targetSala == null) {
+                logger.error("Mensaje de Redis sin campo 'sala'. No se puede reenviar. Mensaje: {}", rawJsonMessage);
+                return;
             }
-        } else {
 
-            logger.info("Usuario {} no está conectado a esta instancia ({}). Mensaje no enviado directamente.", username, System.getProperty("spring.application.name"));
+            Set<WebSocketSession> sessionsInTargetSala = salasSessions.getOrDefault(targetSala, Collections.emptySet());
+
+            if (sessionsInTargetSala.isEmpty()) {
+                logger.info("Ningún usuario de la sala '{}' conectado a esta instancia. Mensaje no enviado localmente.", targetSala);
+                return;
+            }
+
+
+            Iterator<WebSocketSession> it = sessionsInTargetSala.iterator();
+            while (it.hasNext()) {
+                WebSocketSession s = it.next();
+                if (!s.isOpen()) {
+                    it.remove();
+                    sessionIdToSala.remove(s.getId());
+                    logger.warn("Sesión {} cerrada, eliminada de la sala '{}' en esta instancia.", s.getId(), targetSala);
+                    continue;
+                }
+
+                try {
+                    s.sendMessage(new TextMessage(rawJsonMessage));
+                    logger.info("Mensaje enviado a la sesión {} (usuario {}) en la sala '{}' desde esta instancia.",
+                            s.getId(), s.getAttributes().get("userId"), targetSala);
+                } catch (IOException e) {
+                    logger.error("Error enviando mensaje a la sesión {} en la sala '{}': {}", s.getId(), targetSala, e.getMessage());
+                    it.remove();
+                    sessionIdToSala.remove(s.getId());
+                }
+            }
+
+        } catch (IOException e) {
+            logger.error("Error deserializando mensaje JSON de Redis para reenvío: {}", e.getMessage());
         }
     }
 }

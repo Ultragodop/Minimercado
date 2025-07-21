@@ -15,13 +15,10 @@ public class RedisPubSubConfig {
         return new ChannelTopic("websockets-mensajes");
     }
     @Bean
-    public RedisMessageListenerContainer redisMessageListenerContainer(
-            RedisConnectionFactory connectionFactory,
-            MessageListenerAdapter listenerAdapter) {
+    public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory, MessageListenerAdapter listenerAdapter) {
 
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-
         container.addMessageListener(listenerAdapter, websocketsMessagesTopic());
 
         return container;

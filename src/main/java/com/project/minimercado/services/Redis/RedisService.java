@@ -36,12 +36,7 @@ public class RedisService {
                 redisTemplate.hasKey(TOKEN_PREFIX + token)
         );
     }
-public MessageListenerAdapter getMessageListener(String message) {
 
-}
-public RedisMessageListenerContainer getRedisMessageListenerContainer() {
-
-}
     public void revokeToken(String token) {
         redisTemplate.delete(TOKEN_PREFIX + token);
     }
