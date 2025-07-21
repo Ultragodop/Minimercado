@@ -264,7 +264,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     }
     //TODO: Poner el usuario que recibe el mensaje en los atributos de rawJsonMessage  fuckin mierda
-    public void sendMessageToUser(String username, String rawJsonMessage) {
+    public void sendMessageToUser(String rawJsonMessage) {
         try {
 
             ChatMessageDTO chatMessageDTO = mapper.readValue(rawJsonMessage, ChatMessageDTO.class);
