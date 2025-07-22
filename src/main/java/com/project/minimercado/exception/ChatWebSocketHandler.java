@@ -148,20 +148,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             //Iterator una interfaz de java que permite recorrer una colección de objetos
             //Collection es una interfaz que representa una colección de objetos
             //Set es una colección que no permite elementos duplicados :D
-            Iterator<WebSocketSession> it = sesiones.iterator();
-            while (it.hasNext()) {
-                WebSocketSession s = it.next();
 
-                if (!s.isOpen()) {
-                    it.remove();
-                    continue;
-                }
-                if (!s.getId().equals(session.getId())) {
-                    String nombre= (String) s.getAttributes().get("username");
-                    logger.info("Enviando mensaje a la sesión {} del usuario {}", s.getId(), nombre);
-                    s.sendMessage(new TextMessage(jsonMessage));
-                }
-            }
+
 
 
             long start = System.currentTimeMillis();
@@ -294,6 +282,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 }
 
                 try {
+
                     s.sendMessage(new TextMessage(rawJsonMessage));
                     logger.info("Mensaje enviado a la sesión {} (usuario {}) en la sala '{}' desde esta instancia.",
                             s.getId(), s.getAttributes().get("userId"), targetSala);

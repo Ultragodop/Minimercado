@@ -84,6 +84,7 @@ public class Jwt implements HandshakeInterceptor {
         attributes.put("username", jwtService.extractUsername(token));
 
 
+
         return true;
     }
 

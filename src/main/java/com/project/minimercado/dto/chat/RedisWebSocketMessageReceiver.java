@@ -1,14 +1,8 @@
 package com.project.minimercado.dto.chat;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.minimercado.exception.ChatWebSocketHandler;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.util.Map;
 
 @Component
 public class RedisWebSocketMessageReceiver {
