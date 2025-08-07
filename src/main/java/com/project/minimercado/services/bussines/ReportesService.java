@@ -161,6 +161,7 @@ protected ReporteVentas generarReporteVentas(Instant fechaInicio, Instant fechaF
                 .filter(v -> v.getFecha().isAfter(inicio) && v.getFecha().isBefore(fin))
                 .toList();
 
+
         for (Producto producto : productos) {
             AnalisisProducto analisis = new AnalisisProducto();
             analisis.setProducto(producto);

@@ -23,7 +23,21 @@ public class FacturacionController {
     public FacturacionController(FacturacionService facturacionService) {
         this.facturacionService = facturacionService;
     }
-
+    @PostMapping("/ticketTarjeta/{transactionExternalId}")
+    public ResponseEntity<TicketDTO> generarTicketTarjeta(@PathVariable String transactionExternalId) {
+        try {
+            Ticket ticket = facturacionService.generarTicketTarjeta(transactionExternalId);
+            if (ticket == null) {
+                log.error("No se pudo generar el ticket para la venta con transactionExternalId: {}", transactionExternalId);
+                return ResponseEntity.badRequest().build();
+            }
+            TicketDTO dto = new TicketDTO(ticket);
+            return ResponseEntity.ok(dto);
+        } catch (RuntimeException e) {
+            log.error("Error al generar ticket", e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
     @PostMapping("/ticket/{ventaId}")
     public ResponseEntity<TicketDTO> generarTicket(@PathVariable Integer ventaId) {
         try {

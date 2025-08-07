@@ -55,6 +55,7 @@ public class VentaService {
         Venta venta = new Venta();
         venta.setFecha(Instant.now());
         venta.setIdUsuario(idUsuario);
+        venta.setId(currentTimeMillis());
         venta.setTipoPago("EFECTIVO");
         venta.setEstado("PENDIENTE_PAGO");
 
@@ -113,10 +114,14 @@ public class VentaService {
 
         validarVenta(idusuario, detallesVenta);
         validarPermisosUsuario(idusuario);
-        Venta venta = crearVentaInicial(idusuario);
+        int idVenta= currentTimeMillis();
+        Venta venta = crearVentaInicial(idusuario, idVenta);
         Set<DetalleVenta> detalles = venta.getDetalleVentas();
 
-        venta.setId(currentTimeMillis());
+        if(ventaRepository.findById(idVenta).isPresent()) {
+            throw new IllegalArgumentException("ID de venta ya existe, por favor intente nuevamente");
+        }
+
         venta.setEstado("PENDIENTE_PAGO");
         BigDecimal totalVenta = BigDecimal.ZERO;
         List<Product> paymentProducts = new ArrayList<>();
@@ -165,9 +170,10 @@ public class VentaService {
     }
 
 
-    private Venta crearVentaInicial(Usuario usuario) {
+    private Venta crearVentaInicial(Usuario usuario, int idVenta) {
         usuario.setId(usuario.getId());
         Venta venta = new Venta();
+        venta.setId(idVenta);
         venta.setFecha(Instant.now());
         venta.setIdUsuario(usuario);
         venta.setTipoPago("TARJETA");

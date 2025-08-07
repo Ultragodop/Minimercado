@@ -52,6 +52,48 @@ public class FacturacionService {
         this.ventaRepository = ventaRepository;
         this.productosRepository = productosRepository;
     }
+    @Transactional
+    public Ticket generarTicketTarjeta(String transactionExternalId) {
+        try {
+            log.info("Generando ticket");
+            Venta venta = ventaRepository.findByTransactionExternalId(transactionExternalId)
+                    .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+
+            Integer ventaId = venta.getId();
+            if (!ticketRepository.findByVentaId(ventaId).isEmpty()) {
+                throw new RuntimeException("Ya existe un ticket para esta venta");
+            }
+            log.info("Generando ticket");
+            Ticket ticket = new Ticket();
+            ticket.setVenta(venta);
+            ticket.setNumeroTicket(generarNumeroTicket());
+            ticket.setMetodoPago(venta.getTipoPago());
+            ticket.setEstado(EstadoTicket.GENERADO);
+            log.info ("Calculando totales");
+            BigDecimal subtotal = venta.getTotal().divide(BigDecimal.ONE.add(IVA), 2, RoundingMode.HALF_UP);
+            BigDecimal impuestos = venta.getTotal().subtract(subtotal);
+            log.info("Calculando impuestos");
+            ticket.setSubtotal(subtotal);
+            ticket.setImpuestos(impuestos);
+            ticket.setTotal(venta.getTotal());
+            ticket.setFecha(Instant.now());
+            log.info("Generando XML y PDF");
+            String xmlContent = generarXML(ticket);
+            byte[] pdfContent = generarPDF(ticket);
+
+            ticket.setXmlContent(xmlContent);
+            ticket.setPdfContent(pdfContent);
+            guardarPDFEnArchivo(pdfContent, "tickets/" + ticket.getNumeroTicket() + ".pdf");
+
+            log.info("XML y PDF generados correctamente");
+            log.info("Guardando ticket en la base de datos");
+            return ticketRepository.save(ticket);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+   
 
     @Transactional
     public Ticket generarTicket(Integer ventaId) {
