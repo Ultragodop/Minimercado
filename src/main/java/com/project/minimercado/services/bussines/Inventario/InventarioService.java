@@ -167,8 +167,16 @@ public class InventarioService {
 
     // Métodos delegados a ProductosService
     @Transactional
-    public Producto crearProducto(Producto producto) {
-        return productoService.crearProducto(producto);
+    public ProductoDTO crearProducto(Producto producto) {
+        Producto pr = productoService.crearProducto(producto);
+        if(pr == null) {
+            throw new RuntimeException("Error al crear el producto");
+        }
+        ProductoDTO productoDTO= productoService.obtenerProductoPorIdDTO(pr.getId());
+        if(productoDTO == null) {
+            throw new RuntimeException("Error al obtener el producto creado");
+        }
+        return productoDTO;
     }
 
     @Transactional

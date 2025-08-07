@@ -72,7 +72,7 @@ public class InventarioController {
     }
 
     @PostMapping(value = "/producto", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<Producto> agregarProducto(@RequestBody Producto producto) {
+    public ResponseEntity<ProductoDTO> agregarProducto(@RequestBody Producto producto) {
         try {
             return ResponseEntity.ok(inventarioService.crearProducto(producto));
         } catch (IllegalArgumentException e) {
