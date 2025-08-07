@@ -45,7 +45,7 @@ public class Venta {
     @Column(name = "transaction_external_id")
     private String transactionExternalId;
 
-    @OneToMany(mappedBy = "idVenta", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "idVenta", fetch = FetchType.LAZY   , cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<DetalleVenta> detalleVentas = new LinkedHashSet<>();
 
 

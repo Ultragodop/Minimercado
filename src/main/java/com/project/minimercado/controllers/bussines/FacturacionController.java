@@ -1,5 +1,6 @@
 package com.project.minimercado.controllers.bussines;
 
+import com.project.minimercado.dto.bussines.Facturacion.TicketDTO;
 import com.project.minimercado.model.bussines.EstadoTicket;
 import com.project.minimercado.model.bussines.Ticket;
 import com.project.minimercado.services.bussines.FacturacionService;
@@ -24,10 +25,11 @@ public class FacturacionController {
     }
 
     @PostMapping("/ticket/{ventaId}")
-    public ResponseEntity<Ticket> generarTicket(@PathVariable Integer ventaId) {
+    public ResponseEntity<TicketDTO> generarTicket(@PathVariable Integer ventaId) {
         try {
             Ticket ticket = facturacionService.generarTicket(ventaId);
-            return ResponseEntity.ok(ticket);
+            TicketDTO dto = new TicketDTO(ticket);
+            return ResponseEntity.ok(dto);
         } catch (RuntimeException e) {
             log.error("Error al generar ticket", e);
             return ResponseEntity.badRequest().build();

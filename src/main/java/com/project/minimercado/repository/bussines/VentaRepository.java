@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface VentaRepository extends JpaRepository<Venta, Integer> {
 
     Optional<Venta> findByTransactionExternalId(String transactionExternalId);
-    @Query("SELECT u.nombre AS nombre, v.fecha AS fecha,v.tipoPago AS tipoPago,v.estado AS estado,v.total AS total FROM Venta v JOIN v.idUsuario u where v.id = :id")
+    @Query("SELECT v.id AS idVenta, u.nombre AS nombre, v.fecha AS fecha,v.tipoPago AS tipoPago,v.estado AS estado,v.total AS total FROM Venta v JOIN v.idUsuario u where v.id = :id")
     VentaDTO findVentaDTOById(@Param("id") Integer id);
     @NotNull Optional<Venta> findById(@NotNull Integer id);
 

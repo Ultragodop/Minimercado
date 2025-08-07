@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 public interface VentaDTO {
-
+    Integer getId();
     String getNombre();
     Instant getFecha();
     String getTipoPago();

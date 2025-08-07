@@ -12,6 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -32,7 +35,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
+
 import java.util.Locale;
 
 @Service
@@ -51,34 +54,38 @@ public class FacturacionService {
     @Transactional
     public Ticket generarTicket(Integer ventaId) {
         try {
+            log.info("Generando ticket");
             Venta venta = ventaRepository.findById(ventaId)
                     .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
 
-            // Verificar si ya existe un ticket para esta venta
+
             if (!ticketRepository.findByVentaId(ventaId).isEmpty()) {
                 throw new RuntimeException("Ya existe un ticket para esta venta");
             }
-
+        log.info("Generando ticket");
             Ticket ticket = new Ticket();
             ticket.setVenta(venta);
             ticket.setNumeroTicket(generarNumeroTicket());
             ticket.setMetodoPago(venta.getTipoPago());
             ticket.setEstado(EstadoTicket.GENERADO);
-
+            log.info ("Calculando totales");
             BigDecimal subtotal = venta.getTotal().divide(BigDecimal.ONE.add(IVA), 2, RoundingMode.HALF_UP);
             BigDecimal impuestos = venta.getTotal().subtract(subtotal);
-
+            log.info("Calculando impuestos");
             ticket.setSubtotal(subtotal);
             ticket.setImpuestos(impuestos);
             ticket.setTotal(venta.getTotal());
-
-
+            ticket.setFecha(Instant.now());
+            log.info("Generando XML y PDF");
             String xmlContent = generarXML(ticket);
             byte[] pdfContent = generarPDF(ticket);
 
             ticket.setXmlContent(xmlContent);
             ticket.setPdfContent(pdfContent);
+            guardarPDFEnArchivo(pdfContent, "tickets/" + ticket.getNumeroTicket() + ".pdf");
 
+            log.info("XML y PDF generados correctamente");
+            log.info("Guardando ticket en la base de datos");
             return ticketRepository.save(ticket);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -118,48 +125,54 @@ public class FacturacionService {
     }
 
     private String generarXML(Ticket ticket) {
-        if (ticket == null) {
-            return "";
+        try {
+            log.info("Generando XML para el ticket: {}", ticket.getNumeroTicket());
+            if (ticket == null) {
+                return "";
+            }
+
+            StringBuilder xml = new StringBuilder();
+            xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+            xml.append("<ticket>\n");
+
+            // Basic fields
+            xml.append("    <id_ticket>").append(ticket.getId()).append("</id_ticket>\n");
+            xml.append("    <numero_ticket>").append(ticket.getNumeroTicket()).append("</numero_ticket>\n");
+
+            // Format Instant to ISO-8601
+            String fechaFormatted = ticket.getFecha() != null
+                    ? ticket.getFecha().toString()
+                    : "";
+            xml.append("    <fecha>").append(fechaFormatted).append("</fecha>\n");
+
+            // Venta details (ID only to avoid recursion)
+            xml.append("    <venta>\n");
+            xml.append("        <id_venta>").append(ticket.getVenta().getId()).append("</id_venta>\n");
+            xml.append("    </venta>\n");
+
+            // Monetary values (using toPlainString to avoid scientific notation)
+            xml.append("    <subtotal>").append(ticket.getSubtotal().toPlainString()).append("</subtotal>\n");
+            xml.append("    <impuestos>").append(ticket.getImpuestos().toPlainString()).append("</impuestos>\n");
+            xml.append("    <total>").append(ticket.getTotal().toPlainString()).append("</total>\n");
+
+            // Payment and status
+            xml.append("    <metodo_pago>").append(ticket.getMetodoPago()).append("</metodo_pago>\n");
+            xml.append("    <estado>").append(ticket.getEstado().name()).append("</estado>\n");
+
+            xml.append("</ticket>");
+
+            return xml.toString();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-        StringBuilder xml = new StringBuilder();
-        xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        xml.append("<ticket>\n");
-
-        // Basic fields
-        xml.append("    <id_ticket>").append(ticket.getId()).append("</id_ticket>\n");
-        xml.append("    <numero_ticket>").append(ticket.getNumeroTicket()).append("</numero_ticket>\n");
-
-        // Format Instant to ISO-8601
-        String fechaFormatted = ticket.getFecha() != null
-                ? ticket.getFecha().toString()
-                : "";
-        xml.append("    <fecha>").append(fechaFormatted).append("</fecha>\n");
-
-        // Venta details (ID only to avoid recursion)
-        xml.append("    <venta>\n");
-        xml.append("        <id_venta>").append(ticket.getVenta().getId()).append("</id_venta>\n");
-        xml.append("    </venta>\n");
-
-        // Monetary values (using toPlainString to avoid scientific notation)
-        xml.append("    <subtotal>").append(ticket.getSubtotal().toPlainString()).append("</subtotal>\n");
-        xml.append("    <impuestos>").append(ticket.getImpuestos().toPlainString()).append("</impuestos>\n");
-        xml.append("    <total>").append(ticket.getTotal().toPlainString()).append("</total>\n");
-
-        // Payment and status
-        xml.append("    <metodo_pago>").append(ticket.getMetodoPago()).append("</metodo_pago>\n");
-        xml.append("    <estado>").append(ticket.getEstado().name()).append("</estado>\n");
-
-        xml.append("</ticket>");
-
-        return xml.toString();
     }
 
     private byte[] generarPDF(Ticket ticket) {
+        try {
         if (ticket == null) {
             return new byte[0];
         }
-
+            log.info("Generando PDF para el ticket: {}", ticket.getNumeroTicket());
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             // PDF setup
             PdfWriter writer = new PdfWriter(baos);
@@ -171,7 +184,7 @@ public class FacturacionService {
             PdfFont normalFont = PdfFontFactory.createFont(StandardFonts.HELVETICA);
 
             // Company header
-            Paragraph companyHeader = new Paragraph("MINIMERCADO XYZ")
+            Paragraph companyHeader = new Paragraph("MINIMERCADO")
                     .setFont(headerFont)
                     .setFontSize(18)
                     .setTextAlignment(TextAlignment.CENTER)
@@ -228,6 +241,29 @@ public class FacturacionService {
 
             e.printStackTrace();
             return new byte[0];
+        }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public void guardarPDFEnArchivo(byte[] pdfContent, String relativePath) {
+        try {
+            // Carpeta base donde se guardarán los PDFs
+            String carpetaBase = "C:/Users/mampfv/Downloads/Pdfs";
+
+            // Ruta completa (base + ruta relativa)
+            Path path = Paths.get(carpetaBase, relativePath);
+
+            // Crea las carpetas necesarias si no existen
+            Files.createDirectories(path.getParent());
+
+            // Escribe el archivo PDF en disco
+            Files.write(path, pdfContent);
+
+            System.out.println("PDF guardado en: " + path.toAbsolutePath());
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error al guardar el PDF", e);
         }
     }
 
