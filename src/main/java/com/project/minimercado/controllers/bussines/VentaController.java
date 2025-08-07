@@ -66,7 +66,7 @@ public class VentaController {
         try {
             Usuario usuario = usuarioRepository.findById(request.getIdUsuario())
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-            var venta = ventaService.realizarVentaEfectivo(usuario, request.getDetallesVenta());
+            VentaDTO venta = ventaService.realizarVentaEfectivo(usuario, request.getDetallesVenta());
 
            return ResponseEntity.ok(venta);
         } catch (Exception e) {

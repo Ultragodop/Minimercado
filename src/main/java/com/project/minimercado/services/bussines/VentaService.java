@@ -97,12 +97,14 @@ public class VentaService {
 
 
         registrarMovimientoContable(venta);
+
         VentaDTO ventaDTO = ventaRepository.findVentaDTOById(venta.getId());
+
                 if(ventaDTO == null) {
             throw new RuntimeException("Error al obtener la venta guardada");
                 }
         System.out.println("Venta realizada con éxito: " + ventaDTO.getEstado());
-        log.info("Venta realizada con éxito: {}", ventaDTO.getId());
+        log.info("Venta realizada con éxito: {}", ventaDTO.getIdVenta());
         return ventaDTO;
     }
 
