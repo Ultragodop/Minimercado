@@ -184,7 +184,7 @@ public class FacturacionService {
             PdfFont normalFont = PdfFontFactory.createFont(StandardFonts.HELVETICA);
 
             // Company header
-            Paragraph companyHeader = new Paragraph("MINIMERCADO")
+            Paragraph companyHeader = new Paragraph("MINIMERCADO LA ESQUINA")
                     .setFont(headerFont)
                     .setFontSize(18)
                     .setTextAlignment(TextAlignment.CENTER)
