@@ -28,6 +28,10 @@ public class FacturacionController {
     public ResponseEntity<TicketDTO> generarTicket(@PathVariable Integer ventaId) {
         try {
             Ticket ticket = facturacionService.generarTicket(ventaId);
+            if (ticket == null) {
+                log.error("No se pudo generar el ticket para la venta con ID: {}", ventaId);
+                return ResponseEntity.badRequest().build();
+            }
             TicketDTO dto = new TicketDTO(ticket);
             return ResponseEntity.ok(dto);
         } catch (RuntimeException e) {
