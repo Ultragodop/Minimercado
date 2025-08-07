@@ -32,7 +32,7 @@ public class VentaController {
     }
 
     @PostMapping("/tarjeta")
-    public ResponseEntity<Map<String, Object>> realizarVentaTarjeta(
+    public ResponseEntity<Map<String, String>> realizarVentaTarjeta(
             @RequestBody VentaTarjetaRequest request) {
         try {
             if (request == null || request.getIdUsuario() == null || request.getDetallesVenta() == null) {

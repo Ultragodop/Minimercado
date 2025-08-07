@@ -155,7 +155,7 @@ public class InventarioService {
         estadisticas.put("productosBajoStock", productosBajoStock);
 
         // Total de categorías
-        long totalCategorias = categoriaService.listarCategorias().size();
+        long totalCategorias = categoriaService.listarCategoriasDTO().size();
         estadisticas.put("totalCategorias", totalCategorias);
 
         // Total de proveedores

@@ -1,5 +1,6 @@
 package com.project.minimercado.services.bussines.Inventario;
 
+import com.project.minimercado.dto.bussines.Inventario.CategoriaDTO;
 import com.project.minimercado.model.bussines.Categoria;
 import com.project.minimercado.repository.bussines.CategoriasRepository;
 import org.springframework.stereotype.Service;
@@ -51,8 +52,8 @@ public class CategoriaService {
     }
 
     @Transactional(readOnly = true)
-    public List<Categoria> listarCategorias() {
-        return categoriasRepository.findAll();
+    public List<CategoriaDTO> listarCategoriasDTO() {
+        return categoriasRepository.findCategoriasDTO();
     }
 
     @Transactional(readOnly = true)
@@ -84,4 +85,8 @@ public class CategoriaService {
             throw new RuntimeException("Ya existe una categoría con el nombre: " + categoria.getNombre());
         }
     }
-} 
+
+    public List<Categoria> listarCategorias() {
+        return categoriasRepository.findAll();
+    }
+}

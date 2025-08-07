@@ -6,7 +6,7 @@ import java.util.Date;
 
 
 public interface ProductoDTO {
-    Integer getId();
+    Integer getIdProducto();
 
     String getNombre();
     Long getIdCategoria(); // ID de la categoría

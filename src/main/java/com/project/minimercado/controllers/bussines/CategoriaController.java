@@ -1,5 +1,6 @@
 package com.project.minimercado.controllers.bussines;
 
+import com.project.minimercado.dto.bussines.Inventario.CategoriaDTO;
 import com.project.minimercado.model.bussines.Categoria;
 import com.project.minimercado.services.bussines.Inventario.CategoriaService;
 import org.springframework.http.HttpStatus;
@@ -58,10 +59,10 @@ public class CategoriaController {
         }
     }
 
-    @GetMapping
-    public ResponseEntity<List<Categoria>> listarCategorias() {
+    @GetMapping("/listar")
+    public ResponseEntity<List<CategoriaDTO>> listarCategorias() {
         try {
-            List<Categoria> categorias = categoriaService.listarCategorias();
+            List<CategoriaDTO> categorias = categoriaService.listarCategoriasDTO();
             return ResponseEntity.ok(categorias);
         } catch (RuntimeException e) {
             throw new RuntimeException("Error al listar las categorías: " + e.getMessage());

@@ -4,6 +4,7 @@ import com.project.minimercado.dto.bussines.Inventario.ProductoDTO;
 import com.project.minimercado.model.bussines.Producto;
 import com.project.minimercado.services.bussines.Inventario.InventarioService;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -185,21 +186,26 @@ public class InventarioController {
                 return ResponseEntity.notFound().build();
             }
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("id", producto.getId());
-            response.put("nombre", producto.getNombre());
-            response.put("descripcion", producto.getDescripcion());
-            response.put("precioVenta", producto.getPrecioVenta());
-            response.put("stockActual", producto.getStockActual());
-            response.put("stockMinimo", producto.getStockMinimo());
-            response.put("categoria", producto.getCategoriaNombre());
-            response.put("proveedor", producto.getProveedorNombre());
-            response.put("activo", producto.getActivo());
+            Map<String, Object> response = getStringObjectMap(producto);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error al buscar producto por ID: {}", e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    private static @NotNull Map<String, Object> getStringObjectMap(ProductoDTO producto) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", producto.getIdProducto());
+        response.put("nombre", producto.getNombre());
+        response.put("descripcion", producto.getDescripcion());
+        response.put("precioVenta", producto.getPrecioVenta());
+        response.put("stockActual", producto.getStockActual());
+        response.put("stockMinimo", producto.getStockMinimo());
+        response.put("categoria", producto.getCategoriaNombre());
+        response.put("proveedor", producto.getProveedorNombre());
+        response.put("activo", producto.getActivo());
+        return response;
     }
 }

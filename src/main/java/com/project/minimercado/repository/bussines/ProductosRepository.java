@@ -17,7 +17,7 @@ public interface ProductosRepository extends JpaRepository<Producto, Integer> {
     List<Producto> findByNombre(String nombre);
 
     // Obtener productos con nombres de categoría y proveedor
-    @Query("SELECT p.id AS id, p.nombre AS nombre, p.descripcion AS descripcion, " +
+    @Query("SELECT p.id AS idProducto, p.nombre AS nombre, p.descripcion AS descripcion, " +
             "p.precioCompra AS precioCompra, p.precioVenta AS precioVenta, " +
             "p.fechaVencimiento AS fechaVencimiento, " +
             "p.idCategoria.nombre AS categoriaNombre, " + // Acceso directo al nombre
