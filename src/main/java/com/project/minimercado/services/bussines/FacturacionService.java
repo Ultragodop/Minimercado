@@ -50,35 +50,39 @@ public class FacturacionService {
 
     @Transactional
     public Ticket generarTicket(Integer ventaId) {
-        Venta venta = ventaRepository.findById(ventaId)
-                .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+        try {
+            Venta venta = ventaRepository.findById(ventaId)
+                    .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
 
-        // Verificar si ya existe un ticket para esta venta
-        if (!ticketRepository.findByVentaId(ventaId).isEmpty()) {
-            throw new RuntimeException("Ya existe un ticket para esta venta");
+            // Verificar si ya existe un ticket para esta venta
+            if (!ticketRepository.findByVentaId(ventaId).isEmpty()) {
+                throw new RuntimeException("Ya existe un ticket para esta venta");
+            }
+
+            Ticket ticket = new Ticket();
+            ticket.setVenta(venta);
+            ticket.setNumeroTicket(generarNumeroTicket());
+            ticket.setMetodoPago(venta.getTipoPago());
+            ticket.setEstado(EstadoTicket.GENERADO);
+
+            BigDecimal subtotal = venta.getTotal().divide(BigDecimal.ONE.add(IVA), 2, RoundingMode.HALF_UP);
+            BigDecimal impuestos = venta.getTotal().subtract(subtotal);
+
+            ticket.setSubtotal(subtotal);
+            ticket.setImpuestos(impuestos);
+            ticket.setTotal(venta.getTotal());
+
+
+            String xmlContent = generarXML(ticket);
+            byte[] pdfContent = generarPDF(ticket);
+
+            ticket.setXmlContent(xmlContent);
+            ticket.setPdfContent(pdfContent);
+
+            return ticketRepository.save(ticket);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-        Ticket ticket = new Ticket();
-        ticket.setVenta(venta);
-        ticket.setNumeroTicket(generarNumeroTicket());
-        ticket.setMetodoPago(venta.getTipoPago());
-        ticket.setEstado(EstadoTicket.GENERADO);
-
-        BigDecimal subtotal = venta.getTotal().divide(BigDecimal.ONE.add(IVA), 2, RoundingMode.HALF_UP);
-        BigDecimal impuestos = venta.getTotal().subtract(subtotal);
-
-        ticket.setSubtotal(subtotal);
-        ticket.setImpuestos(impuestos);
-        ticket.setTotal(venta.getTotal());
-
-
-        String xmlContent = generarXML(ticket);
-        byte[] pdfContent = generarPDF(ticket);
-
-        ticket.setXmlContent(xmlContent);
-        ticket.setPdfContent(pdfContent);
-
-        return ticketRepository.save(ticket);
     }
 
     @Transactional
