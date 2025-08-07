@@ -62,7 +62,7 @@ public class FacturacionService {
         ticket.setVenta(venta);
         ticket.setNumeroTicket(generarNumeroTicket());
         ticket.setMetodoPago(venta.getTipoPago());
-
+        ticket.setEstado(EstadoTicket.GENERADO);
 
         BigDecimal subtotal = venta.getTotal().divide(BigDecimal.ONE.add(IVA), 2, RoundingMode.HALF_UP);
         BigDecimal impuestos = venta.getTotal().subtract(subtotal);
