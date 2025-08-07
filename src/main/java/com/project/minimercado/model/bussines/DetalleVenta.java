@@ -39,4 +39,7 @@ public class DetalleVenta {
     @Column(name = "subtotal", nullable = false, precision = 12, scale = 2)
     private BigDecimal subtotal;
 
+    public Producto getIdProducto() {
+        return idProducto;
+    }
 }

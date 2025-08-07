@@ -1,9 +1,12 @@
 package com.project.minimercado.services.bussines;
 
 import com.itextpdf.layout.properties.HorizontalAlignment;
+import com.project.minimercado.dto.bussines.Inventario.ProductoDTO;
+import com.project.minimercado.model.bussines.DetalleVenta;
 import com.project.minimercado.model.bussines.EstadoTicket;
 import com.project.minimercado.model.bussines.Ticket;
 import com.project.minimercado.model.bussines.Venta;
+import com.project.minimercado.repository.bussines.ProductosRepository;
 import com.project.minimercado.repository.bussines.TicketRepository;
 import com.project.minimercado.repository.bussines.VentaRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -18,9 +21,8 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+
 import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
@@ -36,8 +38,6 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.time.ZoneId;
 
-import java.util.Locale;
-
 @Service
 @Slf4j
 public class FacturacionService {
@@ -45,10 +45,12 @@ public class FacturacionService {
     private static final DateTimeFormatter TICKET_NUMBER_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     private final TicketRepository ticketRepository;
     private final VentaRepository ventaRepository;
+    private final ProductosRepository productosRepository;
 
-    public FacturacionService(TicketRepository ticketRepository, VentaRepository ventaRepository) {
+    public FacturacionService(TicketRepository ticketRepository, VentaRepository ventaRepository, ProductosRepository productosRepository) {
         this.ticketRepository = ticketRepository;
         this.ventaRepository = ventaRepository;
+        this.productosRepository = productosRepository;
     }
 
     @Transactional
@@ -174,16 +176,15 @@ public class FacturacionService {
         }
             log.info("Generando PDF para el ticket: {}", ticket.getNumeroTicket());
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            // PDF setup
+
             PdfWriter writer = new PdfWriter(baos);
             PdfDocument pdfDoc = new PdfDocument(writer);
             Document document = new Document(pdfDoc);
 
-            // Font setup
+
             PdfFont headerFont = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
             PdfFont normalFont = PdfFontFactory.createFont(StandardFonts.HELVETICA);
 
-            // Company header
             Paragraph companyHeader = new Paragraph("MINIMERCADO LA ESQUINA")
                     .setFont(headerFont)
                     .setFontSize(18)
@@ -191,7 +192,7 @@ public class FacturacionService {
                     .setMarginBottom(10);
             document.add(companyHeader);
 
-            // Invoice title
+
             Paragraph title = new Paragraph("TICKET DE COMPRA #" + ticket.getNumeroTicket())
                     .setFont(headerFont)
                     .setFontSize(14)
@@ -203,19 +204,33 @@ public class FacturacionService {
             DateTimeFormatter dateFormatter = DateTimeFormatter
                     .ofPattern("dd/MM/yyyy HH:mm:ss")
                     .withZone(ZoneId.systemDefault());
-
+            Table ProductosTable = new Table(UnitValue.createPercentArray(new float[]{1, 2}))
+                    .setWidth(UnitValue.createPercentValue(80))
+                    .setMarginBottom(20)
+                    .setHorizontalAlignment(HorizontalAlignment.CENTER);
             NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
             Table detailsTable = new Table(UnitValue.createPercentArray(new float[]{1, 2}))
                     .setWidth(UnitValue.createPercentValue(80))
                     .setMarginBottom(20)
                     .setHorizontalAlignment(HorizontalAlignment.CENTER);
 
+
+
             addDetailRow(detailsTable, "Fecha:", dateFormatter.format(ticket.getFecha()), normalFont);
             addDetailRow(detailsTable, "Venta ID:", ticket.getVenta().getId().toString(), normalFont);
             addDetailRow(detailsTable, "Estado:", ticket.getEstado().name(), normalFont);
+
             addDetailRow(detailsTable, "Método de pago:", ticket.getMetodoPago(), normalFont);
             document.add(detailsTable);
+            Set<DetalleVenta> detalleVenta = ticket.getVenta().getDetalleVentas();
 
+            for(DetalleVenta detalle : detalleVenta) {
+                ProductoDTO productoDTO = productosRepository.findProductoDTOById(detalle.getIdProducto().getId());
+                String nombreProducto = productoDTO.getNombre();
+                addDetailRow(ProductosTable, "Producto:", nombreProducto, normalFont);
+
+            }
+            document.add(ProductosTable);
 
             Table amountsTable = new Table(UnitValue.createPercentArray(new float[]{3, 1}))
                     .setWidth(UnitValue.createPercentValue(60))
@@ -271,6 +286,7 @@ public class FacturacionService {
     private void addDetailRow(Table table, String label, String value, PdfFont font) {
         table.addCell(new Paragraph(label).setFont(font).setBold());
         table.addCell(new Paragraph(value).setFont(font));
+
     }
 
 
