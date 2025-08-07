@@ -19,4 +19,8 @@ public interface TransaccionesRepository extends JpaRepository<MovimientosContab
 
     @Query(value = "SELECT m FROM MovimientosContable m ORDER BY m.fecha DESC LIMIT :n")
     List<MovimientosContable> findTopNByOrderByFechaDesc(@Param("n") int n);
+
+    MovimientosContable getAllByTipo(String tipo);
+
+
 }

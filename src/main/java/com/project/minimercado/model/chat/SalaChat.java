@@ -29,11 +29,10 @@ public class SalaChat {
     @JoinColumn(name = "creador_id", nullable = false)
     private Usuario creador;
 
-    // Relación con SalaUsuario (usuarios autorizados)
     @OneToMany(mappedBy = "sala", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SalaUsuario> usuariosAutorizados = new ArrayList<>();
 
-    // Relación con mensajes de chat
+
     @OneToMany(mappedBy = "sala", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatMessage> mensajes = new ArrayList<>();
 }

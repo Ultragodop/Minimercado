@@ -99,7 +99,7 @@ public class InventarioService {
 
             infoProveedor.put("valorInventario", valorInventarioProveedor);
 
-            // Productos bajo stock de este proveedor
+
             long productosBajoStock = productosProveedor.stream()
                     .filter(p -> p.getStockActual() <= p.getStockMinimo())
                     .count();

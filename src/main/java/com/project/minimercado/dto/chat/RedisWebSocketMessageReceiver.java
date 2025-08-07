@@ -1,6 +1,6 @@
 package com.project.minimercado.dto.chat;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.project.minimercado.exception.ChatWebSocketHandler;
+import com.project.minimercado.websocket.ChatWebSocketHandler;
 import org.springframework.stereotype.Component;
 
 
@@ -19,7 +19,7 @@ public class RedisWebSocketMessageReceiver {
                 " recibió de Redis: " + message);
 
 
-        chatWebSocketHandler.sendMessageToUser(message);
+        chatWebSocketHandler.enviarmensajeentreinstancias(message);
     }
     }
 

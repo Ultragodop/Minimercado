@@ -6,9 +6,11 @@ import com.project.minimercado.model.chat.SalaUsuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface salaUsuarioRepository extends JpaRepository<SalaUsuario, Integer> {
     boolean existsBySalaAndUsuario(SalaChat sala, Usuario usuario);
-
+    
 
 }

@@ -15,6 +15,8 @@ import java.time.Duration;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 @Slf4j
@@ -49,6 +51,7 @@ public class JWTService {
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+
         final Claims claims = extractAllClaims(token);
 
         return claimsResolver.apply(claims);
@@ -56,6 +59,7 @@ public class JWTService {
 
 
     public String generateToken(String username, String role) {
+
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
         System.out.println(claims);
@@ -128,6 +132,7 @@ public class JWTService {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+
     }
     public String InvalidateToken(String token) {
         if(token == null || token.isEmpty()) {

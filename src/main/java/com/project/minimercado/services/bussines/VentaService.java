@@ -6,7 +6,6 @@ import com.project.minimercado.dto.payment.*;
 import com.project.minimercado.model.bussines.*;
 import com.project.minimercado.repository.bussines.*;
 import com.project.minimercado.services.payment.PaymentService;
-import com.sun.jdi.IntegerValue;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -160,6 +159,7 @@ public class VentaService {
             throw new IllegalArgumentException("El usuario no tiene permisos para realizar ventas con tarjeta");
         }
     }
+
 
     private Venta crearVentaInicial(Usuario usuario) {
         usuario.setId(usuario.getId());

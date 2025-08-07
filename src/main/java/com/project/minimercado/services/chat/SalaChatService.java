@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class SalaChatService {
@@ -128,4 +130,31 @@ public String encontrarusuarioreceptor(String emisor, String salaNombre){
     return null;
 }
 
+    public String encontrarUsuarioReceptor(String emisor, String salaNombre) {
+
+        List<SalaUsuario> todasRelaciones = salaUsuarioRepository.findAll();
+
+        // 1) Encuentro la relación emisor–sala
+        Optional<SalaUsuario> relacionEmisor = todasRelaciones.stream()
+                .filter(su -> su.getUsuario().getNombre().equals(emisor)
+                        && su.getSala().getNombre().equals(salaNombre))
+                .findFirst();
+
+        // 2) Si no existe, devuelvo null
+        if (relacionEmisor.isEmpty()) {
+            return null;
+        }
+
+        Long salaId = relacionEmisor.get().getSala().getId();
+
+        // 3) Busco el otro usuario en la misma sala
+        return todasRelaciones.stream()
+                .filter(su -> su.getSala().getId().equals(salaId))
+                .map(su -> su.getUsuario().getNombre())
+                .filter(nombre -> !nombre.equals(emisor))
+                .findFirst()
+                .orElse(null);
+    }
 }
+
+

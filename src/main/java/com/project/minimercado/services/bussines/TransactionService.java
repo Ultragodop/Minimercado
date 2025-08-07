@@ -2,8 +2,10 @@ package com.project.minimercado.services.bussines;
 
 import com.project.minimercado.model.bussines.MovimientosContable;
 import com.project.minimercado.repository.bussines.TransaccionesRepository;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -36,17 +38,7 @@ public class TransactionService {
     public BigDecimal obtenerBalanceDiario(LocalDate fecha) {
         List<MovimientosContable> movimientos = obtenerMovimientosPorFecha(fecha);
 
-        BigDecimal ingresos = movimientos.stream()
-                .filter(m -> "INGRESO".equals(m.getTipo()))
-                .map(MovimientosContable::getMonto)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal egresos = movimientos.stream()
-                .filter(m -> "EGRESO".equals(m.getTipo()))
-                .map(MovimientosContable::getMonto)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        return ingresos.subtract(egresos);
+        return getBigDecimal(movimientos);
     }
 
     @Transactional(readOnly = true)
@@ -56,6 +48,11 @@ public class TransactionService {
 
         List<MovimientosContable> movimientos = transaccionesRepository.findByFechaBetweenOrderByFechaDesc(inicio, fin);
 
+        return getBigDecimal(movimientos);
+    }
+
+    @NotNull
+    private BigDecimal getBigDecimal(List<MovimientosContable> movimientos) {
         BigDecimal ingresos = movimientos.stream()
                 .filter(m -> "INGRESO".equals(m.getTipo()))
                 .map(MovimientosContable::getMonto)

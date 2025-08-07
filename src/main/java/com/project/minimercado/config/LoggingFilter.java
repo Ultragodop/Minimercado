@@ -22,6 +22,7 @@ public class LoggingFilter extends OncePerRequestFilter {
                                     @NotNull FilterChain filterChain) throws ServletException, IOException {
         long startTime = System.currentTimeMillis();
 
+
         logger.info("Incoming request: {} {} from IP {}", request.getMethod(), request.getRequestURI(), request.getRemoteAddr());
 
         try {

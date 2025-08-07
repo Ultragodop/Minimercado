@@ -1,5 +1,6 @@
-package com.project.minimercado.exception;
+package com.project.minimercado.websocket;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.minimercado.dto.chat.ChatMessageDTO;
 
@@ -10,7 +11,6 @@ import com.project.minimercado.repository.chat.ChatMessageRepository;
 import com.project.minimercado.repository.chat.SalaChatRepository;
 import com.project.minimercado.services.Redis.RedisService;
 import com.project.minimercado.services.auth.JWT.JWTService;
-import com.project.minimercado.services.chat.EncryptionUtils;
 import com.project.minimercado.services.chat.SalaChatService;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -29,10 +29,14 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 
 @Component
 @AllArgsConstructor
 public class ChatWebSocketHandler extends TextWebSocketHandler {
+    private final Executor executor = Executors.newFixedThreadPool(10);
     private ChatMessageRepository chatRepository;
     private static final Logger logger = LoggerFactory.getLogger(ChatWebSocketHandler.class);
     private final SalaChatRepository salaChatRepo;
@@ -41,12 +45,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final ChatMessageRepository chatMessageRepository;
     private final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
     private final Map<String, Set<WebSocketSession>> salasSessions = new ConcurrentHashMap<>();
-   private final Map<String, String> sessionIdToSala = new ConcurrentHashMap<>();
-    private final Map<String , String > salatousuario = new ConcurrentHashMap<>();
-    private final Map<String, WebSocketSession> sessionIdToUsuario= new ConcurrentHashMap<>();
-    private final Map<String, String> usuarioToken= new ConcurrentHashMap<>();
+    private final Map<String, String> sessionIdToSala = new ConcurrentHashMap<>();
+    private final Map<String, String> salatousuario = new ConcurrentHashMap<>();
+    private final Map<String, WebSocketSession> sessionIdToUsuario = new ConcurrentHashMap<>();
+    private final Map<String, String> usuarioToken = new ConcurrentHashMap<>();
     private final ObjectMapper mapper = new ObjectMapper();
-    private final Map<String , String > emisorReceptor= new ConcurrentHashMap<>();
+    private final Map<String, String> emisorReceptor = new ConcurrentHashMap<>();
     private SalaChatService salaChatService;
     private final JWTService jwtService;
     private final RedisTemplate<String, Object> redisTemplate;
@@ -72,13 +76,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
 
 
-
         String path = Objects.requireNonNull(session.getUri()).getPath();
         if (!path.startsWith("/chat/")) {
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Ruta no válida"));
             return;
         }
-      sessionIdToUsuario.put(username, session);
+        sessionIdToUsuario.put(username, session);
 
         String salaNombre = path.substring(path.lastIndexOf("/") + 1);
         if (salaNombre.isEmpty()) {
@@ -93,75 +96,97 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        long id= usuarioRepo.getIdUsuario(username);
-        boolean permitir= salaChatService.PermitirConexionPorSala(id , salaNombre);
-        if(!permitir) {
-            logger.warn("Usuario {} no tiene permiso para unirse a la sala {}", username, salaNombre);
+        long id = usuarioRepo.getIdUsuario(username);
+        boolean permitir = salaChatService.PermitirConexionPorSala(id, salaNombre);
+        if (!permitir) {
+            logger.warn("este -> {} no tiene permiso para unirse a la sala {}", username, salaNombre);
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("No autorizado: usuario no tiene permiso para unirse a la sala"));
             return;
         }
-        logger.info("Usuario {} tiene permiso para unirse a la sala {}", username, salaNombre);
+        logger.info(" este -> {} tiene permiso para unirse a la sala {}", username, salaNombre);
 
         salasSessions.computeIfAbsent(salaNombre, k -> ConcurrentHashMap.newKeySet()).add(session);
 
         salatousuario.put(salaNombre, username);
         sessionIdToSala.put(session.getId(), salaNombre);
-        String receptor=salaChatService.encontrarusuarioreceptor(salatousuario.get(sessionIdToSala.get(session.getId())), sessionIdToSala.get(session.getId()));
+        String receptor = salaChatService.encontrarusuarioreceptor(salatousuario.get(sessionIdToSala.get(session.getId())), sessionIdToSala.get(session.getId()));
         emisorReceptor.put(username, receptor);
     }
 
     @Override
-    protected void handleTextMessage(@NotNull WebSocketSession session, @NotNull TextMessage message) throws Exception {
-        Boolean verificado = verificarMensajeConToken(session);
-        String receptor= emisorReceptor.get(salatousuario.get(sessionIdToSala.get(session.getId())));
-        logger.info("El usuario emisor tiene un receptor? {}", receptor != null);
-        logger.info("El receptor del emisor {} es {}", salatousuario.get(sessionIdToSala.get(session.getId())), receptor);
+    protected void handleTextMessage(@NotNull WebSocketSession session, @NotNull TextMessage message)  {
+        try {executor.execute(()  -> {
 
-    // demasiados logs fucking inutiles, pero bueno, asi se aprende
-        if(verificado && receptor!=null) {
-            String salaDelEmisor = sessionIdToSala.get(session.getId());
-            if (salaDelEmisor == null) {
-                logger.warn("Sesión {} no está registrada en ninguna sala", session.getId());
-                session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Sesión no registrada en ninguna sala"));
-                return;
-            }
+            Boolean verificado = verificarMensajeConToken(session);
+            String receptor = emisorReceptor.get(salatousuario.get(sessionIdToSala.get(session.getId())));
+            logger.info("El usuario emisor tiene un receptor? {}", receptor != null);
+            logger.info("El receptor del emisor {} es {}", salatousuario.get(sessionIdToSala.get(session.getId())), receptor);
 
-
-            ChatMessageDTO chatMessageDTO = mapper.readValue(message.getPayload(), ChatMessageDTO.class);
-            logger.info("Mensaje recibido: {}", chatMessageDTO.getMensaje());
-
-
-            logger.info("Cantidad de bytes del mensaje: {} Bytes", message.getPayloadLength());
-            String jsonMessage = mapper.writeValueAsString(chatMessageDTO);
-            Set<WebSocketSession> sesiones = salasSessions.getOrDefault(salaDelEmisor, Collections.emptySet());
-            redisTemplate.convertAndSend(websocketMessagesTopic.getTopic(), jsonMessage);
-            //definicion de las sesiones de sala a las que se enviara el mensaje
+            // demasiados logs fucking inutiles, pero bueno, asi se aprende
+            if (verificado && receptor != null) {
+                String salaDelEmisor = sessionIdToSala.get(session.getId());
+                if (salaDelEmisor == null) {
+                    logger.warn("Sesión {} no está registrada en ninguna sala", session.getId());
+                    try {
+                        session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Sesión no registrada en ninguna sala"));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return;
+                }
 
 
-            //FUking logger de re mierda, no deja imprimir el set de usuarios conectados
-            //Set<String> usuariosConectados = salasSessions.get(salaDelEmisor)
-              //      .stream()
+                ChatMessageDTO chatMessageDTO = null;
+                try {
+                    chatMessageDTO = mapper.readValue(message.getPayload(), ChatMessageDTO.class);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+                logger.info("Mensaje recibido: {}", chatMessageDTO.getMensaje());
+
+
+                logger.info("Cantidad de bytes del mensaje: {} Bytes", message.getPayloadLength());
+                String jsonMessage = null;
+                try {
+                    jsonMessage = mapper.writeValueAsString(chatMessageDTO);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+
+                redisTemplate.convertAndSend(websocketMessagesTopic.getTopic(), jsonMessage);
+                //definicion de las sesiones de sala a las que se enviara el mensaje
+
+
+                //FUking logger de re mierda, no deja imprimir el set de usuarios conectados
+                //Set<String> usuariosConectados = salasSessions.get(salaDelEmisor)
+                //      .stream()
                 //    .map(s -> s.getAttributes().get("username").toString())
-                  //  .collect(Collectors.toSet());
-            //logger.info("Usuarios conectados en la sala {}: {}", salaDelEmisor, usuariosConectados);
+                //  .collect(Collectors.toSet());
+                //logger.info("Usuarios conectados en la sala {}: {}", salaDelEmisor, usuariosConectados);
 
-            //Iterator una interfaz de java que permite recorrer una colección de objetos
-            //Collection es una interfaz que representa una colección de objetos
-            //Set es una colección que no permite elementos duplicados :D
-
-
+                //Iterator una interfaz de java que permite recorrer una colección de objetos
+                //Collection es una interfaz que representa una colección de objetos
+                //Set es una colección que no permite elementos duplicados :D
 
 
-            long start = System.currentTimeMillis();
-            guardarMensaje(salaDelEmisor, chatMessageDTO.getUsuario(), chatMessageDTO.getMensaje(), timestamp);
-            long end = System.currentTimeMillis();
-            logger.info("Mensaje guardado en la base de datos en {} ms", (end - start));
+                long start = System.currentTimeMillis();
+                guardarMensaje(salaDelEmisor, chatMessageDTO.getUsuario(), chatMessageDTO.getMensaje(), timestamp);
+                long end = System.currentTimeMillis();
+                logger.info("Mensaje guardado en la base de datos en {} ms", (end - start));
+            } else {
+                logger.warn("Token no válido o no proporcionado en la sesión {}", session.getId());
+                try {
+                    session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Token no válido o no proporcionado"));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }});
+        } catch(RejectedExecutionException e){
+            logger.info("No pudiste jajaj, joda el hilo no esta disponible {}", e.getMessage());
         }
-        else {
-            logger.warn("Token no válido o no proporcionado en la sesión {}", session.getId());
-            session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Token no válido o no proporcionado"));
-        }
+
     }
+
 
 
 
@@ -185,7 +210,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
 
     }
+
     public Boolean verificarMensajeConToken(WebSocketSession session) {
+
 
         logger.info("Sesion con token header: {}" ,session.getHandshakeHeaders().get("Authorization"));
         if (session.getHandshakeHeaders().get("Authorization") == null) {
@@ -252,7 +279,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     }
     //TODO: Poner el usuario que recibe el mensaje en los atributos de rawJsonMessage  fuckin mierda
-    public void sendMessageToUser(String rawJsonMessage) {
+    public void enviarmensajeentreinstancias(String rawJsonMessage) {
         try {
 
             ChatMessageDTO chatMessageDTO = mapper.readValue(rawJsonMessage, ChatMessageDTO.class);

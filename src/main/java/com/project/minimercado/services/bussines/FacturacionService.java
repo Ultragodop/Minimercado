@@ -1,5 +1,6 @@
 package com.project.minimercado.services.bussines;
 
+import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.project.minimercado.model.bussines.EstadoTicket;
 import com.project.minimercado.model.bussines.Ticket;
 import com.project.minimercado.model.bussines.Venta;
@@ -17,6 +18,22 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import com.itextpdf.io.font.constants.StandardFonts;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.layout.properties.UnitValue;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.text.NumberFormat;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 @Service
 @Slf4j
@@ -46,7 +63,7 @@ public class FacturacionService {
         ticket.setNumeroTicket(generarNumeroTicket());
         ticket.setMetodoPago(venta.getTipoPago());
 
-        // Calcular totales
+
         BigDecimal subtotal = venta.getTotal().divide(BigDecimal.ONE.add(IVA), 2, RoundingMode.HALF_UP);
         BigDecimal impuestos = venta.getTotal().subtract(subtotal);
 
@@ -54,7 +71,7 @@ public class FacturacionService {
         ticket.setImpuestos(impuestos);
         ticket.setTotal(venta.getTotal());
 
-        // Generar XML y PDF
+
         String xmlContent = generarXML(ticket);
         byte[] pdfContent = generarPDF(ticket);
 
@@ -97,29 +114,131 @@ public class FacturacionService {
     }
 
     private String generarXML(Ticket ticket) {
-        return String.format("""
-                        <?xml version="1.0" encoding="UTF-8"?>
-                        <ticket>
-                            <numero>%s</numero>
-                            <fecha>%s</fecha>
-                            <subtotal>%s</subtotal>
-                            <impuestos>%s</impuestos>
-                            <total>%s</total>
-                            <metodoPago>%s</metodoPago>
-                        </ticket>
-                        """,
-                ticket.getNumeroTicket(),
-                ticket.getFecha(),
-                ticket.getSubtotal(),
-                ticket.getImpuestos(),
-                ticket.getTotal(),
-                ticket.getMetodoPago()
-        );
+        if (ticket == null) {
+            return "";
+        }
+
+        StringBuilder xml = new StringBuilder();
+        xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        xml.append("<ticket>\n");
+
+        // Basic fields
+        xml.append("    <id_ticket>").append(ticket.getId()).append("</id_ticket>\n");
+        xml.append("    <numero_ticket>").append(ticket.getNumeroTicket()).append("</numero_ticket>\n");
+
+        // Format Instant to ISO-8601
+        String fechaFormatted = ticket.getFecha() != null
+                ? ticket.getFecha().toString()
+                : "";
+        xml.append("    <fecha>").append(fechaFormatted).append("</fecha>\n");
+
+        // Venta details (ID only to avoid recursion)
+        xml.append("    <venta>\n");
+        xml.append("        <id_venta>").append(ticket.getVenta().getId()).append("</id_venta>\n");
+        xml.append("    </venta>\n");
+
+        // Monetary values (using toPlainString to avoid scientific notation)
+        xml.append("    <subtotal>").append(ticket.getSubtotal().toPlainString()).append("</subtotal>\n");
+        xml.append("    <impuestos>").append(ticket.getImpuestos().toPlainString()).append("</impuestos>\n");
+        xml.append("    <total>").append(ticket.getTotal().toPlainString()).append("</total>\n");
+
+        // Payment and status
+        xml.append("    <metodo_pago>").append(ticket.getMetodoPago()).append("</metodo_pago>\n");
+        xml.append("    <estado>").append(ticket.getEstado().name()).append("</estado>\n");
+
+        xml.append("</ticket>");
+
+        return xml.toString();
     }
 
     private byte[] generarPDF(Ticket ticket) {
+        if (ticket == null) {
+            return new byte[0];
+        }
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            // PDF setup
+            PdfWriter writer = new PdfWriter(baos);
+            PdfDocument pdfDoc = new PdfDocument(writer);
+            Document document = new Document(pdfDoc);
+
+            // Font setup
+            PdfFont headerFont = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
+            PdfFont normalFont = PdfFontFactory.createFont(StandardFonts.HELVETICA);
+
+            // Company header
+            Paragraph companyHeader = new Paragraph("MINIMERCADO XYZ")
+                    .setFont(headerFont)
+                    .setFontSize(18)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginBottom(10);
+            document.add(companyHeader);
+
+            // Invoice title
+            Paragraph title = new Paragraph("TICKET DE COMPRA #" + ticket.getNumeroTicket())
+                    .setFont(headerFont)
+                    .setFontSize(14)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginBottom(20);
+            document.add(title);
 
 
-        return new byte[0];
+            DateTimeFormatter dateFormatter = DateTimeFormatter
+                    .ofPattern("dd/MM/yyyy HH:mm:ss")
+                    .withZone(ZoneId.systemDefault());
+
+            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
+            Table detailsTable = new Table(UnitValue.createPercentArray(new float[]{1, 2}))
+                    .setWidth(UnitValue.createPercentValue(80))
+                    .setMarginBottom(20)
+                    .setHorizontalAlignment(HorizontalAlignment.CENTER);
+
+            addDetailRow(detailsTable, "Fecha:", dateFormatter.format(ticket.getFecha()), normalFont);
+            addDetailRow(detailsTable, "Venta ID:", ticket.getVenta().getId().toString(), normalFont);
+            addDetailRow(detailsTable, "Estado:", ticket.getEstado().name(), normalFont);
+            addDetailRow(detailsTable, "Método de pago:", ticket.getMetodoPago(), normalFont);
+            document.add(detailsTable);
+
+
+            Table amountsTable = new Table(UnitValue.createPercentArray(new float[]{3, 1}))
+                    .setWidth(UnitValue.createPercentValue(60))
+                    .setMarginBottom(30)
+                    .setHorizontalAlignment(HorizontalAlignment.RIGHT);
+
+            addAmountRow(amountsTable, "Subtotal:", ticket.getSubtotal(), currencyFormat, normalFont);
+            addAmountRow(amountsTable, "Impuestos:", ticket.getImpuestos(), currencyFormat, normalFont);
+            addAmountRow(amountsTable, "TOTAL:", ticket.getTotal(), currencyFormat, headerFont);
+            document.add(amountsTable);
+
+
+            Paragraph footer = new Paragraph("¡Gracias por su compra!")
+                    .setFont(normalFont)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setItalic()
+                    .setMarginTop(30);
+            document.add(footer);
+
+            document.close();
+            return baos.toByteArray();
+        } catch (IOException e) {
+
+            e.printStackTrace();
+            return new byte[0];
+        }
+    }
+
+
+    private void addDetailRow(Table table, String label, String value, PdfFont font) {
+        table.addCell(new Paragraph(label).setFont(font).setBold());
+        table.addCell(new Paragraph(value).setFont(font));
+    }
+
+
+    private void addAmountRow(Table table, String label, BigDecimal amount,
+                              NumberFormat currencyFormat, PdfFont font) {
+        table.addCell(new Paragraph(label).setFont(font));
+        table.addCell(new Paragraph(currencyFormat.format(amount))
+                .setFont(font)
+                .setTextAlignment(TextAlignment.RIGHT));
     }
 } 
