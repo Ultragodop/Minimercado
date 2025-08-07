@@ -6,6 +6,7 @@ import com.project.minimercado.dto.payment.*;
 import com.project.minimercado.model.bussines.*;
 import com.project.minimercado.repository.bussines.*;
 import com.project.minimercado.services.payment.PaymentService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class VentaService {
 
@@ -100,7 +102,7 @@ public class VentaService {
             throw new RuntimeException("Error al obtener la venta guardada");
                 }
         System.out.println("Venta realizada con éxito: " + ventaDTO.getEstado());
-
+        log.info("Venta realizada con éxito: {}", ventaDTO.getId());
         return ventaDTO;
     }
 
