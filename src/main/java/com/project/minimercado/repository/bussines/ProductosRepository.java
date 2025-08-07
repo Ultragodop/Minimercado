@@ -28,7 +28,7 @@ public interface ProductosRepository extends JpaRepository<Producto, Integer> {
     List<ProductoDTO> findAllProductoDTOs();
     @Query("""
     SELECT
-        p.id AS id,
+        p.id AS idProducto,
         p.nombre AS nombre,
         p.descripcion AS descripcion,
         p.precioCompra AS precioCompra,
