@@ -58,6 +58,9 @@ public class FacturacionController {
     public ResponseEntity<Response> anularTicket(@PathVariable String numeroTicket) {
         try {
             Response ticket = facturacionService.anularTicket(numeroTicket);
+            if(ticket.getStatus().equals("400")){
+                return ResponseEntity.badRequest().body(ticket);
+            }
             return ResponseEntity.ok(ticket);
         } catch (RuntimeException e) {
             log.error("Error al anular ticket", e);
@@ -90,7 +93,7 @@ public class FacturacionController {
     }
 
     @GetMapping("/ticket/{numeroTicket}")
-    public ResponseEntity<Ticket> obtenerTicketPorNumero(@PathVariable String numeroTicket) {
+    public ResponseEntity<TicketDTO> obtenerTicketPorNumero(@PathVariable String numeroTicket) {
         try {
             return facturacionService.obtenerTicketPorNumero(numeroTicket)
                     .map(ResponseEntity::ok)

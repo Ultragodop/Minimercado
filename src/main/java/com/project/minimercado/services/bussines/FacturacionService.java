@@ -1,6 +1,7 @@
 package com.project.minimercado.services.bussines;
 
 import com.itextpdf.layout.properties.HorizontalAlignment;
+import com.project.minimercado.dto.bussines.Facturacion.TicketDTO;
 import com.project.minimercado.dto.bussines.Inventario.ProductoDTO;
 import com.project.minimercado.model.bussines.DetalleVenta;
 import com.project.minimercado.model.bussines.EstadoTicket;
@@ -165,8 +166,8 @@ public class FacturacionService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<Ticket> obtenerTicketPorNumero(String numeroTicket) {
-        return ticketRepository.findByNumeroTicket(numeroTicket);
+    public Optional<TicketDTO> obtenerTicketPorNumero(String numeroTicket) {
+        return ticketRepository.findByNumeroTicketDTO(numeroTicket);
     }
 
     private String generarNumeroTicket() {
@@ -175,11 +176,11 @@ public class FacturacionService {
 
     private String generarXML(Ticket ticket) {
         try {
-            log.info("Generando XML para el ticket: {}", ticket.getNumeroTicket());
+
             if (ticket == null) {
                 return "";
             }
-
+            log.info("Generando XML para el ticket: {}", ticket.getNumeroTicket());
             StringBuilder xml = new StringBuilder();
             xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
             xml.append("<ticket>\n");
