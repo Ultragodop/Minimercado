@@ -33,8 +33,6 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
     private final UserDetailsServiceWithId userDetailsService;
     private Cache<String, UserDetailsWithId> userDetailsCache;
-    private ExecutorService authExecutor;
-
     @PostConstruct
     public void init() {
         userDetailsCache = Caffeine.newBuilder()
@@ -42,7 +40,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 .maximumSize(100)
                 .build();
 
-        authExecutor = Executors.newWorkStealingPool(8);
+
     }
 
     @Override
@@ -131,16 +129,6 @@ public class JWTAuthFilter extends OncePerRequestFilter {
         response.getWriter().flush();
     }
 
-    @PreDestroy
-    public void shutdown() {
-        authExecutor.shutdown();
-        try {
-            if (!authExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                authExecutor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            authExecutor.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-    }
+
+
 }

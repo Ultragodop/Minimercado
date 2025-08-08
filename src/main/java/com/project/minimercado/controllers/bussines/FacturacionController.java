@@ -3,6 +3,7 @@ package com.project.minimercado.controllers.bussines;
 import com.project.minimercado.dto.bussines.Facturacion.TicketDTO;
 import com.project.minimercado.model.bussines.EstadoTicket;
 import com.project.minimercado.model.bussines.Ticket;
+import com.project.minimercado.model.peticiones.Response;
 import com.project.minimercado.services.bussines.FacturacionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -24,15 +25,14 @@ public class FacturacionController {
         this.facturacionService = facturacionService;
     }
     @PostMapping("/ticketTarjeta/{transactionExternalId}")
-    public ResponseEntity<TicketDTO> generarTicketTarjeta(@PathVariable String transactionExternalId) {
+    public ResponseEntity<Response> generarTicketTarjeta(@PathVariable String transactionExternalId) {
         try {
-            Ticket ticket = facturacionService.generarTicketTarjeta(transactionExternalId);
+            Response ticket = facturacionService.generarTicketTarjeta(transactionExternalId);
             if (ticket == null) {
                 log.error("No se pudo generar el ticket para la venta con transactionExternalId: {}", transactionExternalId);
                 return ResponseEntity.badRequest().build();
             }
-            TicketDTO dto = new TicketDTO(ticket);
-            return ResponseEntity.ok(dto);
+            return ResponseEntity.ok(ticket);
         } catch (RuntimeException e) {
             log.error("Error al generar ticket", e);
             return ResponseEntity.badRequest().build();
@@ -55,9 +55,9 @@ public class FacturacionController {
     }
 
     @PostMapping("/ticket/{numeroTicket}/anular")
-    public ResponseEntity<Ticket> anularTicket(@PathVariable String numeroTicket) {
+    public ResponseEntity<Response> anularTicket(@PathVariable String numeroTicket) {
         try {
-            Ticket ticket = facturacionService.anularTicket(numeroTicket);
+            Response ticket = facturacionService.anularTicket(numeroTicket);
             return ResponseEntity.ok(ticket);
         } catch (RuntimeException e) {
             log.error("Error al anular ticket", e);

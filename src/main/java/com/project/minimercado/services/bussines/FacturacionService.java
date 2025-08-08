@@ -6,6 +6,7 @@ import com.project.minimercado.model.bussines.DetalleVenta;
 import com.project.minimercado.model.bussines.EstadoTicket;
 import com.project.minimercado.model.bussines.Ticket;
 import com.project.minimercado.model.bussines.Venta;
+import com.project.minimercado.model.peticiones.Response;
 import com.project.minimercado.repository.bussines.ProductosRepository;
 import com.project.minimercado.repository.bussines.TicketRepository;
 import com.project.minimercado.repository.bussines.VentaRepository;
@@ -53,7 +54,7 @@ public class FacturacionService {
         this.productosRepository = productosRepository;
     }
     @Transactional
-    public Ticket generarTicketTarjeta(String transactionExternalId) {
+    public Response generarTicketTarjeta(String transactionExternalId) {
         try {
             log.info("Generando ticket");
             Venta venta = ventaRepository.findByTransactionExternalId(transactionExternalId)
@@ -87,13 +88,13 @@ public class FacturacionService {
 
             log.info("XML y PDF generados correctamente");
             log.info("Guardando ticket en la base de datos");
-            return ticketRepository.save(ticket);
+            return new Response("200", "Ticket generado correctamente");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-   
+
 
     @Transactional
     public Ticket generarTicket(Integer ventaId) {
@@ -137,16 +138,20 @@ public class FacturacionService {
     }
 
     @Transactional
-    public Ticket anularTicket(String numeroTicket) {
+    public Response anularTicket(String numeroTicket) {
+        if(numeroTicket == null || numeroTicket.isEmpty()) {
+            return new Response("400", "Número de ticket no puede ser nulo o vacío");
+        }
         Ticket ticket = ticketRepository.findByNumeroTicket(numeroTicket)
                 .orElseThrow(() -> new RuntimeException("Ticket no encontrado"));
 
         if (ticket.getEstado() == EstadoTicket.ANULADO) {
-            throw new RuntimeException("El ticket ya está anulado");
+            return new Response("400", "El ticket ya está anulado");
         }
 
         ticket.setEstado(EstadoTicket.ANULADO);
-        return ticketRepository.save(ticket);
+        ticketRepository.save(ticket);
+        return new Response("200", "Ticket anulado correctamente");
     }
 
     @Transactional(readOnly = true)
