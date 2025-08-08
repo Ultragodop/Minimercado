@@ -175,7 +175,6 @@ public class FacturacionService {
     private String generarNumeroTicket() {
         return LocalDateTime.now().format(TICKET_NUMBER_FORMAT) + "-" + UUID.randomUUID().toString().substring(0, 8);
     }
-    @Transactional(readOnly = true)
 
 
     private String generarXML(Ticket ticket) {
