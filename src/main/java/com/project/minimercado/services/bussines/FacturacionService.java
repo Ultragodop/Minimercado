@@ -1,6 +1,7 @@
 package com.project.minimercado.services.bussines;
 
 import com.itextpdf.layout.properties.HorizontalAlignment;
+import com.netflix.appinfo.ApplicationInfoManager;
 import com.project.minimercado.dto.bussines.Facturacion.TicketDTO;
 import com.project.minimercado.dto.bussines.Inventario.ProductoDTO;
 import com.project.minimercado.model.bussines.DetalleVenta;
@@ -12,6 +13,7 @@ import com.project.minimercado.repository.bussines.ProductosRepository;
 import com.project.minimercado.repository.bussines.TicketRepository;
 import com.project.minimercado.repository.bussines.VentaRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -166,13 +168,15 @@ public class FacturacionService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<TicketDTO> obtenerTicketPorNumero(String numeroTicket) {
+    public TicketDTO obtenerTicketPorNumero(String numeroTicket) {
         return ticketRepository.findByNumeroTicketDTO(numeroTicket);
     }
 
     private String generarNumeroTicket() {
         return LocalDateTime.now().format(TICKET_NUMBER_FORMAT) + "-" + UUID.randomUUID().toString().substring(0, 8);
     }
+    @Transactional(readOnly = true)
+
 
     private String generarXML(Ticket ticket) {
         try {
@@ -345,4 +349,21 @@ public class FacturacionService {
                 .setFont(font)
                 .setTextAlignment(TextAlignment.RIGHT));
     }
-} 
+
+    public String obtenerXML(String numeroTicket) {
+        if(numeroTicket == null || numeroTicket.isEmpty()) {
+            throw new IllegalArgumentException("Número de ticket no puede ser nulo o vacío");
+        }
+
+        return ticketRepository.findByNumeroTicket(numeroTicket)
+                .map(Ticket::getXmlContent)
+                .orElseThrow(() -> new RuntimeException("Ticket no encontrado"));
+    }
+
+    public byte[] obtenerPDFPorNumeroTicket(String numeroTicket) {
+        return ticketRepository.findByNumeroTicket(numeroTicket).map(Ticket::getPdfContent)
+                .orElseThrow(() -> new RuntimeException("Ticket no encontrado"));
+
+
+    }
+}

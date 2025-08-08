@@ -15,7 +15,7 @@ import java.util.Optional;
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket, Integer> {
     @Query("SELECT t.id as id, t.numeroTicket as numeroTicket, t.fecha as fecha, t.subtotal as subtotal, t.impuestos as impuestos, t.total as total, t.metodoPago as metodoPago, t.estado as estado, t.xmlContent as xmlContent, t.pdfContent as pdfContent, t.venta.id as ventaId FROM Ticket t WHERE t.numeroTicket = :numeroTicket")
-    Optional<TicketDTO> findByNumeroTicketDTO(@Param("numeroTicket") String numeroTicket);
+    TicketDTO findByNumeroTicketDTO(@Param("numeroTicket") String numeroTicket);
     List<Ticket> findByVentaId(Integer ventaId);
     Optional<Ticket> findByNumeroTicket(String numeroTicket);
     List<Ticket> findByEstado(EstadoTicket estado);

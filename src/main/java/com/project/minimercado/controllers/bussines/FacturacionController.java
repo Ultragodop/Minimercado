@@ -95,9 +95,8 @@ public class FacturacionController {
     @GetMapping("/ticket/{numeroTicket}")
     public ResponseEntity<TicketDTO> obtenerTicketPorNumero(@PathVariable String numeroTicket) {
         try {
-            return facturacionService.obtenerTicketPorNumero(numeroTicket)
-                    .map(ResponseEntity::ok)
-                    .orElse(ResponseEntity.notFound().build());
+            return ResponseEntity.ok(facturacionService.obtenerTicketPorNumero(numeroTicket));
+
         } catch (Exception e) {
             log.error("Error al obtener ticket por número", e);
             return ResponseEntity.internalServerError().build();
@@ -107,12 +106,8 @@ public class FacturacionController {
     @GetMapping("/ticket/{numeroTicket}/xml")
     public ResponseEntity<String> obtenerXMLTicket(@PathVariable String numeroTicket) {
         try {
-            return facturacionService.obtenerTicketPorNumero(numeroTicket)
-                    .map(ticket -> ResponseEntity.ok()
-                            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ticket-" + numeroTicket + ".xml")
-                            .contentType(MediaType.APPLICATION_XML)
-                            .body(ticket.getXmlContent()))
-                    .orElse(ResponseEntity.notFound().build());
+            return ResponseEntity.ok(facturacionService.obtenerXML(numeroTicket));
+
         } catch (Exception e) {
             log.error("Error al obtener XML del ticket", e);
             return ResponseEntity.internalServerError().build();
@@ -122,12 +117,8 @@ public class FacturacionController {
     @GetMapping("/ticket/{numeroTicket}/pdf")
     public ResponseEntity<byte[]> obtenerPDFTicket(@PathVariable String numeroTicket) {
         try {
-            return facturacionService.obtenerTicketPorNumero(numeroTicket)
-                    .map(ticket -> ResponseEntity.ok()
-                            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ticket-" + numeroTicket + ".pdf")
-                            .contentType(MediaType.APPLICATION_PDF)
-                            .body(ticket.getPdfContent()))
-                    .orElse(ResponseEntity.notFound().build());
+            return ResponseEntity.ok(facturacionService.obtenerPDFPorNumeroTicket(numeroTicket));
+
         } catch (Exception e) {
             log.error("Error al obtener PDF del ticket", e);
             return ResponseEntity.internalServerError().build();
