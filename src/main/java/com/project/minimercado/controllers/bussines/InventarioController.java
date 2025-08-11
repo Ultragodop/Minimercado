@@ -3,6 +3,7 @@ package com.project.minimercado.controllers.bussines;
 import com.project.minimercado.dto.bussines.Inventario.ProductoDTO;
 import com.project.minimercado.model.bussines.Producto;
 import com.project.minimercado.services.bussines.Inventario.InventarioService;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,7 @@ public class InventarioController {
     public InventarioController(InventarioService inventarioService) {
         this.inventarioService = inventarioService;
     }
-
+    @Transactional
     @GetMapping("/estado")
     public ResponseEntity<Map<String, Object>> obtenerEstadoInventario() {
         try {

@@ -149,7 +149,7 @@ public class FacturacionService {
                 .orElseThrow(() -> new RuntimeException("Ticket no encontrado"));
 
         if (ticket.getEstado() == EstadoTicket.ANULADO) {
-            return new Response("400", "El ticket ya está anulado");
+            return new Response("404", "El ticket ya está anulado");
         }
 
         ticket.setEstado(EstadoTicket.ANULADO);

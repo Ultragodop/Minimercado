@@ -26,7 +26,7 @@ public class InventarioService {
         this.proveedorService = proveedorService;
     }
 
-    @Transactional(readOnly = true)
+  
     public Map<String, Object> obtenerEstadoInventario() {
         Map<String, Object> estado = new HashMap<>();
 
@@ -202,11 +202,8 @@ public class InventarioService {
         if (id <= 0) {
             throw new IllegalArgumentException("El ID del producto debe ser un número positivo");
         }
-        ProductoDTO producto = productoService.obtenerProductoPorIdDTO(id);
-        if (producto == null) {
-            throw new IllegalArgumentException("No se encontró un producto con el ID proporcionado: " + id);
-        }
-        return producto;
+
+        return productoService.obtenerProductoPorIdDTO(id);
     }
 
     @Transactional(readOnly = true)
