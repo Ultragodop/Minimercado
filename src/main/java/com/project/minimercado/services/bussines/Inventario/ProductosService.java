@@ -133,5 +133,16 @@ public class ProductosService {
             throw new RuntimeException("El stock mínimo no puede ser negativo");
         }
     }
+
+    public List<ProductoDTO> obtenerProductoPorNombre(String nombre) {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del producto no puede ser nulo o vacío");
+        }
+        List<ProductoDTO> productoDTO = productosRepository.findProductoDTOByNombre(nombre);
+        if (productoDTO == null) {
+            throw new RuntimeException("Producto no encontrado con nombre: " + nombre);
+        }
+        return productoDTO;
+    }
 }
 

@@ -114,10 +114,26 @@ public class InventarioController {
         }
     }
 
-    @GetMapping("/producto/{id}")
+    @GetMapping("/producto/BuscarById/{id}")
     public ResponseEntity<ProductoDTO> obtenerProducto(@PathVariable Integer id) {
         try {
             ProductoDTO producto = inventarioService.obtenerProductoPorId(id);
+            if (producto == null) {
+                return null;
+            }
+            return ResponseEntity.ok(producto);
+        } catch (IllegalArgumentException e) {
+            log.warn("Error al obtener producto: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Error al obtener producto", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    @GetMapping("/producto/BuscarByNombre/{nombre}")
+    public ResponseEntity<List<ProductoDTO>> obtenerProducto(@PathVariable String nombre) {
+        try {
+            List<ProductoDTO> producto = inventarioService.obtenerProductoPorNombre(nombre);
             if (producto == null) {
                 return null;
             }

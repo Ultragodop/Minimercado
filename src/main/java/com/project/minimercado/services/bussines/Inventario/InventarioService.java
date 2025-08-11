@@ -220,5 +220,8 @@ public class InventarioService {
     public Producto actualizarStock(Integer id, Integer cantidad) {
         return productoService.actualizarStock(id, cantidad);
     }
-
+ @Transactional
+    public List<ProductoDTO> obtenerProductoPorNombre(String nombre) {
+        return productoService.obtenerProductoPorNombre(nombre);
     }
+}

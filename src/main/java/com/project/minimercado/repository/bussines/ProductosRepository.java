@@ -26,6 +26,7 @@ public interface ProductosRepository extends JpaRepository<Producto, Integer> {
             "p.activo AS activo " +
             "FROM Producto p")
     List<ProductoDTO> findAllProductoDTOs();
+
     @Query("""
     SELECT
         p.id AS idProducto,
@@ -44,5 +45,23 @@ public interface ProductosRepository extends JpaRepository<Producto, Integer> {
 """)
     ProductoDTO findProductoDTOById(@Param("id") Integer id);
 
-
+    @Query("""
+    SELECT
+        p.id AS idProducto,
+        p.nombre AS nombre,
+        p.descripcion AS descripcion,
+        p.precioCompra AS precioCompra,
+        p.precioVenta AS precioVenta,
+        p.fechaVencimiento AS fechaVencimiento,
+        c.nombre AS categoriaNombre,
+        pr.nombre AS proveedorNombre,
+        p.stockActual AS stockActual,
+        p.stockMinimo AS stockMinimo,
+        p.activo AS activo
+    FROM Producto p
+    LEFT JOIN p.idCategoria c
+    LEFT JOIN p.idProveedor pr
+    WHERE p.nombre LIKE CONCAT(:nombre, '%')
+""")
+    List<ProductoDTO> findProductoDTOByNombre(@Param("nombre") String nombre);
 }
