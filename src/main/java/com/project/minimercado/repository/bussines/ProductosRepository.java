@@ -24,7 +24,7 @@ public interface ProductosRepository extends JpaRepository<Producto, Integer> {
             "p.idProveedor.nombre AS proveedorNombre, " + // Acceso directo al nombre
             "p.stockActual AS stockActual, p.stockMinimo AS stockMinimo, " +
             "p.activo AS activo " +
-            "FROM Producto p")
+            "FROM Producto p where p.activo=true")
     List<ProductoDTO> findAllProductoDTOs();
 
     @Query("""
