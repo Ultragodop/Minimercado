@@ -96,9 +96,8 @@ public class VentaController {
     @GetMapping("/todas-ventas")
     public ResponseEntity<List<VentaDTO>> obtenerTodasVentas() {
     try{
-
-        return ResponseEntity.ok(ventaService.obtenerVentas());
-
+        List<VentaDTO> ventaDTOS= ventaService.obtenerVentas();
+        return  ResponseEntity.ok(ventaDTOS);
 
     } catch (Exception e) {
         throw new RuntimeException(e);

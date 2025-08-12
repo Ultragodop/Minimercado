@@ -1,7 +1,7 @@
 package com.project.minimercado.services.bussines;
 
 import com.project.minimercado.config.PaymentConfig;
-import com.project.minimercado.dto.bussines.Ventas.VentaDTO;
+import com.project.minimercado.dto.bussines.Ventas.*;
 import com.project.minimercado.dto.payment.*;
 import com.project.minimercado.model.bussines.*;
 import com.project.minimercado.repository.bussines.*;
@@ -12,10 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -285,15 +282,42 @@ public void validarCallBackPago(CallbackRequest request){
         return ventaRepository.findById(idVenta)
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
     }
-    @Transactional(readOnly = true)
-    public List<VentaDTO> obtenerVentas(){
-        List<VentaDTO> ventaDTOS= ventaRepository.findAllVentasDTO();
-        for(VentaDTO ventaDTO : ventaDTOS){
-            ventaDTO.setDetalleVenta(detalleVentaRepository.findDetalleVenta(ventaDTO.getIdVenta()));
-            log.info("En la venta {}, se vendieron {} ", ventaDTO.getIdVenta(), ventaDTO.getDetalleVenta() );
+
+        @Transactional(readOnly = true) //TODO: Ver si se puede optimizar :D (me quiero matar)
+        public List<VentaDTO> obtenerVentas() {
+            List<VentaDetallePlanoDTO> planos = ventaRepository.findAllVentasDetallePlanos();
+
+            Map<Integer, VentaDTOImpl> ventasMap = new LinkedHashMap<>();
+
+            for (VentaDetallePlanoDTO fila : planos) {
+                VentaDTOImpl venta = ventasMap.computeIfAbsent(
+                        fila.getIdVenta(),
+                        id -> new VentaDTOImpl(
+                                fila.getIdVenta(),
+                                fila.getNombre(),
+                                fila.getFecha(),
+                                fila.getTipoPago(),
+                                fila.getEstado(),
+                                new ArrayList<>()
+                        )
+                );
+
+                venta.getDetalleVenta().add(
+                        new DetalleVentaDTOImpl(
+                                fila.getCantidad(),
+                                fila.getPrecioUnitario(),
+                                new ProductoDTOImpl(
+                                        fila.getIdProducto(),
+                                        fila.getNombreProducto()
+                                )
+                        )
+                );
+            }
+
+            return new ArrayList<>(ventasMap.values());
         }
-        return ventaDTOS;
-    }
+
+
 
     public static class DetalleVentaTemp {
         private Integer idProducto;
