@@ -1,6 +1,6 @@
 package com.project.minimercado.dto.bussines.Inventario;
 
-import com.project.minimercado.model.bussines.Producto;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.util.Date;
 
@@ -15,7 +15,7 @@ public interface ProductoDTO {
     Double getPrecioCompra();
 
     Double getPrecioVenta();
-
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
     Date getFechaVencimiento();
 
     String getCategoriaNombre(); // Nombre de la categoría
