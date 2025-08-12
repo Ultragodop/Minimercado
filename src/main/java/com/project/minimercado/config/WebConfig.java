@@ -24,6 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOriginPatterns(
                         "http://localhost:[0-9]+",
                         "http://127.0.0.1:[0-9]+",
+                        "http://localhost:5173",
                         "null"
 
                 )
