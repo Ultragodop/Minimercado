@@ -27,19 +27,20 @@ public class VentaService {
     private final PaymentService paymentService;
     private final PaymentConfig paymentConfig;
     private final UsuarioRepository usuarioRepository;
+    private final DetalleVentaRepository detalleVentaRepository;
 
     public VentaService(VentaRepository ventaRepository,
                         ProductosRepository productoRepository,
                         TransaccionesRepository transaccionesRepository,
-                        DetalleVentaRepository detalleVentaRepository,
                         PaymentService paymentService,
-                        PaymentConfig paymentConfig, UsuarioRepository usuarioRepository) {
+                        PaymentConfig paymentConfig, UsuarioRepository usuarioRepository, DetalleVentaRepository detalleVentaRepository) {
         this.ventaRepository = ventaRepository;
         this.productoRepository = productoRepository;
         this.transaccionesRepository = transaccionesRepository;
         this.paymentService = paymentService;
         this.paymentConfig = paymentConfig;
         this.usuarioRepository = usuarioRepository;
+        this.detalleVentaRepository = detalleVentaRepository;
     }
 
     @Transactional
@@ -286,7 +287,12 @@ public void validarCallBackPago(CallbackRequest request){
     }
     @Transactional(readOnly = true)
     public List<VentaDTO> obtenerVentas(){
-        return ventaRepository.findAllVentasDTO();
+        List<VentaDTO> ventaDTOS= ventaRepository.findAllVentasDTO();
+        for(VentaDTO ventaDTO : ventaDTOS){
+            ventaDTO.setDetalleVenta(detalleVentaRepository.findDetalleVenta(ventaDTO.getIdVenta()));
+            log.info("En la venta {}, se vendieron {} ", ventaDTO.getIdVenta(), ventaDTO.getDetalleVenta() );
+        }
+        return ventaDTOS;
     }
 
     public static class DetalleVentaTemp {

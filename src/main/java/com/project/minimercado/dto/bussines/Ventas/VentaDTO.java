@@ -3,20 +3,65 @@ package com.project.minimercado.dto.bussines.Ventas;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import java.math.BigDecimal;
+
 import java.time.Instant;
+import java.util.List;
 
-public interface VentaDTO {
-        Integer getIdVenta();
-        String getNombre();
+public class VentaDTO {
+        Integer IdVenta;
+        String nombre;
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
-        Instant getFecha();
-        String getTipoPago();
-        String getEstado();
-        BigDecimal getTotal();
-        String getProductoNombre();
-        Integer getCantidad();
+        Instant fecha;
+        String tipoPago;
 
+        public String getEstado() {
+                return estado;
+        }
 
+        public void setEstado(String estado) {
+                this.estado = estado;
+        }
 
+        String estado;
+        List<DetalleVentaDTO> detalleVenta;
+
+        public Integer getIdVenta() {
+                return IdVenta;
+        }
+
+        public void setIdVenta(Integer idVenta) {
+                this.IdVenta = idVenta;
+        }
+
+        public String getNombre() {
+                return nombre;
+        }
+
+        public void setNombre(String nombre) {
+                this.nombre = nombre;
+        }
+
+        public Instant getFecha() {
+                return fecha;
+        }
+
+        public void setFecha(Instant fecha) {
+                this.fecha = fecha;
+        }
+
+        public String getTipoPago() {
+                return tipoPago;
+        }
+
+        public void setTipoPago(String tipoPago) {
+                this.tipoPago = tipoPago;
+        }
+
+        public List<DetalleVentaDTO> getDetalleVenta() {
+                return detalleVenta;
+        }
+
+        public void setDetalleVenta(List<DetalleVentaDTO> detalleVenta) {
+                this.detalleVenta = detalleVenta;
+        }
 }
