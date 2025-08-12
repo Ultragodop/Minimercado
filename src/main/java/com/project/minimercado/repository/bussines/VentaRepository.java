@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface VentaRepository extends JpaRepository<Venta, Integer> {
@@ -17,5 +18,6 @@ public interface VentaRepository extends JpaRepository<Venta, Integer> {
     VentaDTO findVentaDTOById(@Param("id") Integer id);
     @NotNull Optional<Venta> findById(@NotNull Integer id);
 
-
+@Query("Select v.id as idVenta, u.nombre AS nombre, v.fecha as fecha, v.tipoPago as tipoPago, v.estado as estado, v.total as total from Venta v join v.idUsuario u ")
+    List<VentaDTO> findAllVentasDTO();
 }

@@ -93,6 +93,17 @@ public class VentaController {
                     .body(Map.of("error", e.getMessage()));
         }
     }
+    @GetMapping("/todas-ventas")
+    public ResponseEntity<List<VentaDTO>> obtenerTodasVentas() {
+    try{
+
+        return ResponseEntity.ok(ventaService.obtenerVentas());
+
+
+    } catch (Exception e) {
+        throw new RuntimeException(e);
+    }
+    }
 
     @Data
     public static class VentaTarjetaRequest {

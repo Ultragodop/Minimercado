@@ -284,6 +284,10 @@ public void validarCallBackPago(CallbackRequest request){
         return ventaRepository.findById(idVenta)
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
     }
+    @Transactional(readOnly = true)
+    public List<VentaDTO> obtenerVentas(){
+        return ventaRepository.findAllVentasDTO();
+    }
 
     public static class DetalleVentaTemp {
         private Integer idProducto;
