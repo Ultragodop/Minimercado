@@ -31,6 +31,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 
 @Slf4j
@@ -97,26 +98,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-
         configuration.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:[0-9]+",
-                "http://127.0.0.1:[0-9]+",
-                "http://192.168.1.*:[0-9]+",
-                "http://localhost:[0-9]+",
-                "http://192.168.0.45:[0-9]+",
-                "http://192.168.0.45:[0-9]+",
-                "null"
-
-
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "http://192.168.0.45:5173"
         ));
 
-        configuration.setAllowedMethods(Arrays.asList(
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE",
-                "OPTIONS"
-        ));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
         configuration.setAllowedHeaders(Arrays.asList(
                 "Authorization",
@@ -139,9 +127,9 @@ public class SecurityConfig {
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-
         return source;
     }
+
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProviderWithId authProvider = new DaoAuthenticationProviderWithId();
