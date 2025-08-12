@@ -4,6 +4,7 @@ import com.project.minimercado.dto.bussines.Inventario.ProductoDTO;
 import com.project.minimercado.model.bussines.Categoria;
 import com.project.minimercado.model.bussines.Producto;
 import com.project.minimercado.model.bussines.Proveedores;
+import com.project.minimercado.model.peticiones.Response;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -185,7 +186,7 @@ public class InventarioService {
     }
 
     @Transactional
-    public Producto actualizarProducto(Integer id, Producto producto) {
+    public Response actualizarProducto(Integer id, Producto producto) {
         return productoService.actualizarProducto(id, producto);
     }
 

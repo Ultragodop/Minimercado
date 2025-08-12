@@ -3,6 +3,7 @@ package com.project.minimercado.services.bussines.Inventario;
 import com.project.minimercado.dto.bussines.Inventario.ProductoDTO;
 import com.project.minimercado.model.bussines.Categoria;
 import com.project.minimercado.model.bussines.Producto;
+import com.project.minimercado.model.peticiones.Response;
 import com.project.minimercado.repository.bussines.ProductosRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +37,7 @@ public class ProductosService {
     }
 
     @Transactional
-    public Producto actualizarProducto(Integer id, Producto productoActualizado) {
+    public Response actualizarProducto(Integer id, Producto productoActualizado) {
         Producto productoExistente = obtenerProductoPorId(id);
 
         // Actualizar campos
@@ -51,7 +52,8 @@ public class ProductosService {
         productoExistente.setActivo(productoActualizado.getActivo());
 
         validateproduct(productoExistente);
-        return productosRepository.save(productoExistente);
+        productosRepository.save(productoExistente);
+        return new Response("success", "Producto actualizado con exito");
     }
 
     @Transactional

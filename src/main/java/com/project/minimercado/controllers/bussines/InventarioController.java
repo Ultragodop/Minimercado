@@ -2,6 +2,7 @@ package com.project.minimercado.controllers.bussines;
 
 import com.project.minimercado.dto.bussines.Inventario.ProductoDTO;
 import com.project.minimercado.model.bussines.Producto;
+import com.project.minimercado.model.peticiones.Response;
 import com.project.minimercado.services.bussines.Inventario.InventarioService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -86,11 +87,12 @@ public class InventarioController {
     }
 
     @PutMapping("/producto/{id}")
-    public ResponseEntity<Producto> actualizarProducto(
+    public ResponseEntity<Response> actualizarProducto(
             @PathVariable Integer id,
             @RequestBody Producto producto) {
         try {
             return ResponseEntity.ok(inventarioService.actualizarProducto(id, producto));
+
         } catch (IllegalArgumentException e) {
             log.warn("Error al actualizar producto: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
