@@ -18,6 +18,6 @@ public interface VentaRepository extends JpaRepository<Venta, Integer> {
     VentaDTO findVentaDTOById(@Param("id") Integer id);
     @NotNull Optional<Venta> findById(@NotNull Integer id);
 
-@Query("Select v.id as idVenta, u.nombre AS nombre, v.fecha as fecha, v.tipoPago as tipoPago, v.estado as estado, v.total as total from Venta v join v.idUsuario u ")
+@Query("Select v.id as idVenta, u.nombre as nombre, v.fecha as fecha, v.tipoPago as tipoPago, v.estado as estado, v.total as total, p.nombre as productoNombre, dv.cantidad as cantidad from Producto p join DetalleVenta dv on p = dv.idProducto join Venta v on dv.idVenta=v join Usuario u on v.idUsuario=u" )
     List<VentaDTO> findAllVentasDTO();
 }
