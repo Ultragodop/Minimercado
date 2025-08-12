@@ -24,11 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOriginPatterns(
                         "http://localhost:[0-9]+",
                         "http://127.0.0.1:[0-9]+",
-                        "http://localhost:5173",
-                        "http://192.168.0.45:[0-9]+",
-                        "http://192.168.0.45:**",
-                        "null"
-
+                        "http://192.168.0.45:[0-9]+"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")
@@ -36,6 +32,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowCredentials(true)
                 .maxAge(3600);
     }
+
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {

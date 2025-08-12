@@ -102,9 +102,9 @@ public class SecurityConfig {
                 "http://localhost:[0-9]+",
                 "http://127.0.0.1:[0-9]+",
                 "http://192.168.1.*:[0-9]+",
-                "http://localhost:**",
+                "http://localhost:[0-9]+",
                 "http://192.168.0.45:[0-9]+",
-                "http://192.168.0.45:**",
+                "http://192.168.0.45:[0-9]+",
                 "null"
 
 
