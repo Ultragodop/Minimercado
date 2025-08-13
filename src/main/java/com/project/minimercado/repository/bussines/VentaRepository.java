@@ -41,7 +41,7 @@ public interface VentaRepository extends JpaRepository<Venta, Integer> {
            v.fecha AS fecha,
            v.tipoPago AS tipoPago,
            v.estado AS estado,
-           v.total,
+           v.total AS total,
            dv.cantidad AS cantidad,
            dv.precioUnitario AS precioUnitario,
            p.id AS idProducto,
