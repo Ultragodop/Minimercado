@@ -277,7 +277,7 @@ public class FacturacionService {
                 ProductoDTO productoDTO = productosRepository.findProductoDTOById(detalle.getIdProducto().getId());
                 String nombreProducto = productoDTO.getNombre();
                 addDetailRow(ProductosTable, nombreProducto, detalle.getCantidad().toString(),
-                        currencyFormat.format(detalle.getIdProducto().getPrecioVenta()), normalFont);
+                        (detalle.getIdProducto().getPrecioVenta()).toString(), normalFont);
 
             }
             document.add(ProductosTable);
@@ -352,7 +352,7 @@ public class FacturacionService {
         table.addCell(new Paragraph("Cantidad:").setFont(font));
         table.addCell(new Paragraph(cantidad).setFont(font));
         table.addCell(new Paragraph("Precio:").setFont(font));
-        table.addCell(new Paragraph(precio).setFont(font));
+        table.addCell(new Paragraph(precio + " $").setFont(font));
     }
 
 
