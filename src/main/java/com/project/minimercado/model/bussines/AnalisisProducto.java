@@ -38,6 +38,8 @@ public class AnalisisProducto {
 
     @Column(name = "fecha_fin", nullable = false)
     private Instant fechaFin;
+    @Column(name = "stock", nullable = false)
+    private Integer Stock;
 
     @Column(name = "periodo", nullable = false)
     private String periodo; // DIARIO, SEMANAL, MENSUAL

@@ -1,11 +1,13 @@
 package com.project.minimercado.controllers.bussines;
 
+import com.project.minimercado.dto.bussines.Analisis.AnalisisProductoDTO;
 import com.project.minimercado.model.bussines.AnalisisProducto;
 import com.project.minimercado.model.bussines.ReporteVentas;
 import com.project.minimercado.services.bussines.ReportesService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -58,7 +60,7 @@ public class ReportesController {
     }
 
     @GetMapping("/productos/ranking")
-    public ResponseEntity<List<AnalisisProducto>> obtenerRankingProductos(
+    public ResponseEntity<List<AnalisisProductoDTO>> obtenerRankingProductos(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
         try {
@@ -70,7 +72,7 @@ public class ReportesController {
     }
 
     @GetMapping("/productos/rentabilidad")
-    public ResponseEntity<List<AnalisisProducto>> obtenerAnalisisRentabilidad(
+    public ResponseEntity<List<AnalisisProductoDTO>> obtenerAnalisisRentabilidad(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
         try {
@@ -82,7 +84,7 @@ public class ReportesController {
     }
 
     @GetMapping("/productos/rotacion")
-    public ResponseEntity<List<AnalisisProducto>> obtenerAnalisisRotacion(
+    public ResponseEntity<List<AnalisisProductoDTO>> obtenerAnalisisRotacion(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
         try {

@@ -1,10 +1,12 @@
 package com.project.minimercado.services.bussines;
 
+import com.project.minimercado.dto.bussines.Analisis.AnalisisProductoDTO;
 import com.project.minimercado.model.bussines.*;
 import com.project.minimercado.repository.bussines.AnalisisProductoRepository;
 import com.project.minimercado.repository.bussines.ProductosRepository;
 import com.project.minimercado.repository.bussines.ReporteVentasRepository;
 import com.project.minimercado.repository.bussines.VentaRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +18,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
+@Slf4j
 @Service
 public class ReportesService {
     private final VentaRepository ventaRepository;
@@ -70,7 +72,7 @@ public class ReportesService {
     }
 
     @Transactional
-    public List<AnalisisProducto> generarRankingProductos(LocalDate fechaInicio, LocalDate fechaFin) {
+    public List<AnalisisProductoDTO> generarRankingProductos(LocalDate fechaInicio, LocalDate fechaFin) {
         Instant inicio = fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant fin = fechaFin.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
 
@@ -78,7 +80,7 @@ public class ReportesService {
     }
 
     @Transactional
-    public List<AnalisisProducto> generarAnalisisRentabilidad(LocalDate fechaInicio, LocalDate fechaFin) {
+    public List<AnalisisProductoDTO> generarAnalisisRentabilidad(LocalDate fechaInicio, LocalDate fechaFin) {
         Instant inicio = fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant fin = fechaFin.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
 
@@ -86,7 +88,7 @@ public class ReportesService {
     }
 
     @Transactional
-    public List<AnalisisProducto> generarAnalisisRotacion(LocalDate fechaInicio, LocalDate fechaFin) {
+    public List<AnalisisProductoDTO> generarAnalisisRotacion(LocalDate fechaInicio, LocalDate fechaFin) {
         Instant inicio = fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant fin = fechaFin.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
 
@@ -168,7 +170,7 @@ protected ReporteVentas generarReporteVentas(Instant fechaInicio, Instant fechaF
             analisis.setFechaInicio(inicio);
             analisis.setFechaFin(fin);
             analisis.setPeriodo("PERIODO");
-
+            analisis.setStock(producto.getStockActual());
             // Calcular métricas
             int unidadesVendidas = ventas.stream()
                     .flatMap(v -> v.getDetalleVentas().stream())
@@ -181,6 +183,7 @@ protected ReporteVentas generarReporteVentas(Instant fechaInicio, Instant fechaF
                     .filter(d -> d.getIdProducto().getId().equals(producto.getId()))
                     .map(DetalleVenta::getSubtotal)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
+
 
             BigDecimal margenGanancia = ingresos.subtract(
                     BigDecimal.valueOf(producto.getPrecioCompra() * unidadesVendidas)
