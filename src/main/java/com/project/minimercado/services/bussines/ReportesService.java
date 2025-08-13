@@ -94,6 +94,7 @@ public class ReportesService {
 
         return analisisProductoRepository.findTopRotacion(inicio, fin);
     }
+    // genera reportes en determinadas fechas, se necesitan reportes diarios, semanales, anuales y por periodo
 @Transactional
 protected ReporteVentas generarReporteVentas(Instant fechaInicio, Instant fechaFin, String periodo) {
         List<Venta> ventas = ventaRepository.findAll().stream()
@@ -152,7 +153,7 @@ protected ReporteVentas generarReporteVentas(Instant fechaInicio, Instant fechaF
 
         return reporte;
     }
-
+// genera reportes en determinadas fechas, se necesitan reportes diarios, semanales, anuales y por periodo
     @Transactional
     public void generarAnalisisProductos(LocalDate fechaInicio, LocalDate fechaFin) {
         Instant inicio = fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant();
