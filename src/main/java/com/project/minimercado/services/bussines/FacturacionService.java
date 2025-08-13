@@ -315,10 +315,16 @@ public class FacturacionService {
     }
     public void guardarPDFEnArchivo(byte[] pdfContent, String relativePath) {
         try {
-            // Carpeta base donde se guardarán los PDFs
-            String carpetaBase = "C:/Users/mampfv/Downloads/Pdfs";
+            String osName = System.getProperty("os.name").toLowerCase();
 
-            // Ruta completa (base + ruta relativa)
+          String carpetaBase;
+            if(System.getProperty(osName).toLowerCase().contains("windows")) {
+                carpetaBase = "C:/Users/mampfv/Downloads/Pdfs";
+            }
+            carpetaBase = "/home/santi/Pdfs";
+            log.info("Guardando PDF en la ruta: {} ",  carpetaBase );
+
+
             Path path = Paths.get(carpetaBase, relativePath);
 
             // Crea las carpetas necesarias si no existen
