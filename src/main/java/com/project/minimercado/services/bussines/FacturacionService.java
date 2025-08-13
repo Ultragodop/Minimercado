@@ -278,13 +278,9 @@ public class FacturacionService {
             for(DetalleVenta detalle : detalleVenta) {
                 ProductoDTO productoDTO = productosRepository.findProductoDTOById(detalle.getIdProducto().getId());
                 String nombreProducto = productoDTO.getNombre();
-                addDetailRow(ProductosTable, "Producto:", nombreProducto, normalFont);
-                ProductosTable.addCell(new Paragraph("Cantidad: " + detalle.getCantidad())
-                        .setFont(normalFont)
-                        .setTextAlignment(TextAlignment.RIGHT));
-                ProductosTable.addCell(new Paragraph("Precio: " + currencyFormat.format(detalle.getIdProducto().getPrecioVenta()))
-                        .setFont(normalFont)
-                        .setTextAlignment(TextAlignment.RIGHT));
+                addDetailRow(ProductosTable, "Producto:", nombreProducto, detalle.getCantidad().toString(),
+                        currencyFormat.format(detalle.getIdProducto().getPrecioVenta()), normalFont);
+
             }
             document.add(ProductosTable);
 
@@ -343,6 +339,12 @@ public class FacturacionService {
         table.addCell(new Paragraph(label).setFont(font).setBold());
         table.addCell(new Paragraph(value).setFont(font));
 
+    }
+    private void addDetailRow(Table table, String label, String nombre, String cantidad, String precio, PdfFont font) {
+        table.addCell(new Paragraph(label).setFont(font).setBold());
+        table.addCell(new Paragraph(nombre).setFont(font));
+        table.addCell(new Paragraph(cantidad).setFont(font));
+        table.addCell(new Paragraph(precio).setFont(font));
     }
 
 
