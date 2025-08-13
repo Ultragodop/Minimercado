@@ -1,7 +1,6 @@
 package com.project.minimercado.services.bussines;
 
 import com.itextpdf.layout.properties.HorizontalAlignment;
-import com.netflix.appinfo.ApplicationInfoManager;
 import com.project.minimercado.dto.bussines.Facturacion.TicketDTO;
 import com.project.minimercado.dto.bussines.Inventario.ProductoDTO;
 import com.project.minimercado.model.bussines.DetalleVenta;
@@ -13,7 +12,6 @@ import com.project.minimercado.repository.bussines.ProductosRepository;
 import com.project.minimercado.repository.bussines.TicketRepository;
 import com.project.minimercado.repository.bussines.VentaRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -278,7 +276,7 @@ public class FacturacionService {
             for(DetalleVenta detalle : detalleVenta) {
                 ProductoDTO productoDTO = productosRepository.findProductoDTOById(detalle.getIdProducto().getId());
                 String nombreProducto = productoDTO.getNombre();
-                addDetailRow(ProductosTable, "Producto:", nombreProducto, detalle.getCantidad().toString(),
+                addDetailRow(ProductosTable, nombreProducto, detalle.getCantidad().toString(),
                         currencyFormat.format(detalle.getIdProducto().getPrecioVenta()), normalFont);
 
             }
@@ -348,10 +346,12 @@ public class FacturacionService {
         table.addCell(new Paragraph(value).setFont(font));
 
     }
-    private void addDetailRow(Table table, String label, String nombre, String cantidad, String precio, PdfFont font) {
-        table.addCell(new Paragraph(label).setFont(font).setBold());
+    private void addDetailRow(Table table, String nombre, String cantidad, String precio, PdfFont font) {
+        table.addCell(new Paragraph("Producto:").setFont(font));
         table.addCell(new Paragraph(nombre).setFont(font));
+        table.addCell(new Paragraph("Cantidad:").setFont(font));
         table.addCell(new Paragraph(cantidad).setFont(font));
+        table.addCell(new Paragraph("Precio:").setFont(font));
         table.addCell(new Paragraph(precio).setFont(font));
     }
 
