@@ -279,7 +279,12 @@ public class FacturacionService {
                 ProductoDTO productoDTO = productosRepository.findProductoDTOById(detalle.getIdProducto().getId());
                 String nombreProducto = productoDTO.getNombre();
                 addDetailRow(ProductosTable, "Producto:", nombreProducto, normalFont);
-
+                ProductosTable.addCell(new Paragraph("Cantidad: " + detalle.getCantidad())
+                        .setFont(normalFont)
+                        .setTextAlignment(TextAlignment.RIGHT));
+                ProductosTable.addCell(new Paragraph("Precio: " + currencyFormat.format(detalle.getIdProducto().getPrecioVenta()))
+                        .setFont(normalFont)
+                        .setTextAlignment(TextAlignment.RIGHT));
             }
             document.add(ProductosTable);
 
