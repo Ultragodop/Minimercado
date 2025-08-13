@@ -298,6 +298,7 @@ public void validarCallBackPago(CallbackRequest request){
                                 fila.getFecha(),
                                 fila.getTipoPago(),
                                 fila.getEstado(),
+                                fila.getTotal(),
                                 new ArrayList<>()
                         )
                 );

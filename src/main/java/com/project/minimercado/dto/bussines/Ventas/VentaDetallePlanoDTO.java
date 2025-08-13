@@ -10,7 +10,7 @@ public interface VentaDetallePlanoDTO {
     Instant getFecha();
     String getTipoPago();
     String getEstado();
-
+    Integer getTotal();
     Integer getCantidad();
     Integer getPrecioUnitario();
 
