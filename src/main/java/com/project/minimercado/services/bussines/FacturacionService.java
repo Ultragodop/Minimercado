@@ -316,7 +316,7 @@ public class FacturacionService {
     public void guardarPDFEnArchivo(byte[] pdfContent, String relativePath) {
         try {
             String osName = System.getProperty("os.name").toLowerCase();
-
+            log.info("Sistema operativo detectado: {}", osName);
           String carpetaBase;
             if(System.getProperty(osName).toLowerCase().contains("windows")) {
                 carpetaBase = "C:/Users/mampfv/Downloads/Pdfs";
