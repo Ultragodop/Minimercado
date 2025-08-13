@@ -154,7 +154,7 @@ protected ReporteVentas generarReporteVentas(Instant fechaInicio, Instant fechaF
     }
 
     @Transactional
-    public void actualizarAnalisisProductos(LocalDate fechaInicio, LocalDate fechaFin) {
+    public void generarAnalisisProductos(LocalDate fechaInicio, LocalDate fechaFin) {
         Instant inicio = fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant fin = fechaFin.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
 

@@ -1,13 +1,11 @@
 package com.project.minimercado.controllers.bussines;
 
 import com.project.minimercado.dto.bussines.Analisis.AnalisisProductoDTO;
-import com.project.minimercado.model.bussines.AnalisisProducto;
 import com.project.minimercado.model.bussines.ReporteVentas;
 import com.project.minimercado.services.bussines.ReportesService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -95,12 +93,12 @@ public class ReportesController {
         }
     }
 
-    @PostMapping("/actualizar")
-    public ResponseEntity<Void> actualizarReportes(
+    @PostMapping("/generar-analisis-productos")
+    public ResponseEntity<Void> generarAnalisis(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
         try {
-            reportesService.actualizarAnalisisProductos(fechaInicio, fechaFin);
+            reportesService.generarAnalisisProductos(fechaInicio, fechaFin);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             log.error("Error al actualizar reportes", e);
