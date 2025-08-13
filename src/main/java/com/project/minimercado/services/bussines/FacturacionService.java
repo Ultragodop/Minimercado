@@ -347,8 +347,8 @@ public class FacturacionService {
 
     }
     private void addDetailRow(Table table, String nombre, String cantidad, String precio, PdfFont font) {
-        table.addCell(new Paragraph("Producto:").setFont(font));
-        table.addCell(new Paragraph(nombre).setFont(font));
+        table.addCell(new Paragraph("Producto:").setFont(font).setBold());
+        table.addCell(new Paragraph(nombre).setFont(font).setBold());
         table.addCell(new Paragraph("Cantidad:").setFont(font));
         table.addCell(new Paragraph(cantidad).setFont(font));
         table.addCell(new Paragraph("Precio:").setFont(font));
