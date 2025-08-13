@@ -318,7 +318,7 @@ public class FacturacionService {
             String osName = System.getProperty("os.name").toLowerCase();
             log.info("Sistema operativo detectado: {}", osName);
           String carpetaBase;
-            if(System.getProperty(osName).toLowerCase().contains("windows")) {
+            if(osName.contains("windows")) {
                 carpetaBase = "C:/Users/mampfv/Downloads/Pdfs";
             }
             else{
