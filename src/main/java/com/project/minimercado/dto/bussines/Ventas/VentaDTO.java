@@ -14,6 +14,7 @@ public interface VentaDTO {
         Instant getFecha();
         String getTipoPago();
         String getEstado();
+        Integer getTotal();
         List<DetalleVentaDTO> getDetalleVenta();
 
 

@@ -14,5 +14,6 @@ public class VentaDTOImpl implements VentaDTO {
     private Instant fecha;
     private String tipoPago;
     private String estado;
+    private Integer total;
     private List<DetalleVentaDTO> detalleVenta;
 }
