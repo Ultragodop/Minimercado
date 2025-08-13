@@ -321,7 +321,9 @@ public class FacturacionService {
             if(System.getProperty(osName).toLowerCase().contains("windows")) {
                 carpetaBase = "C:/Users/mampfv/Downloads/Pdfs";
             }
+            else{
             carpetaBase = "/home/santi/Pdfs";
+            }
             log.info("Guardando PDF en la ruta: {} ",  carpetaBase );
 
 
